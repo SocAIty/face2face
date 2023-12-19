@@ -1,0 +1,27 @@
+__pycache__/
+
+# Ignore output folder and models folder
+output/
+models/
+
+# Ignore virtual environment folder
+venv/
+
+### IDE FILES
+
+# Ignore PyCharm files
+.idea/
+
+# Ignore Visual Studio Code files
+.vscode/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore distribution folders
+dist/
+build/
+*.egg-info/
