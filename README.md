@@ -87,6 +87,16 @@ response = requests.post("http://localhost:8020/swap_from_reference_face", param
 ```
 In this example it is assumed that previously a face embedding with name "myface" was created with the add_reference_face endpoint.
 
+### Inference via script
+
+You can also use the class FaceSwapper to do the inference. 
+```python
+from face_swapper_REST.face_swapper import FaceSwapper
+swapper = FaceSwapper()
+swapped = swapper.swap_one("src.jpg", "target.jpg")
+```
+
+
 # Contribute
 
 Any help with maintaining and extending the package is welcome. Feel free to open an issue or a pull request.
