@@ -17,7 +17,7 @@ The credits for face swapping technology go to the great Insightface Team thank 
 This projects uses their pretrained models and code. Special thanks goes to their work around [ROOP](https://github.com/s0md3v/sd-webui-roop).
 Some parts of the code stem from the ROOP repository.
 
-I do not claim any authorship for this repository. My contribution is simply to wrapt the code into a REST Api.
+I do not claim any authorship for this repository. My contribution was simply wrapping the code into a REST Api.
 
 # Setup
 
@@ -37,7 +37,7 @@ Then make post requests to the server with your favorite tool or library.
 Here are some examples to inference with a python client.
 
 Note: The first time you start the server, it will download the models. This can take a while.
-If this fails, you can download the files manually or with the model_downloader.py script.
+If this fails, you can download the files manually and store them in models/ or models/insightface/inswapper_128.onnx
 
 ### For face swapping 
 
