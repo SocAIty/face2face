@@ -1,5 +1,6 @@
-# FaceSwapper_REST
+# Face2Face
 
+Face2Face is a generative AI technology to swap faces (aka Deep Fake) in images from one to another. For example you can swap your face with Mona Lisa our your favourite superstar.
 With this repository you can:
 
 - Swap faces from one image to another. Powered by [Insightface](https://github.com/deepinsight/insightface)
