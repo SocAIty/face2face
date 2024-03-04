@@ -7,12 +7,13 @@ from face_swapper_REST.settings import OUTPUT_DIR, MODELS_DIR
 from face_swapper_REST.utils import get_files_in_dir
 
 
-def make_video_from_images(image_paths: list[str], outpath: str = None, frame_rate: int = 60) -> None:
-    """ creates a video from a list of images"""
+def make_video_from_images(
+    image_paths: list[str], outpath: str = None, frame_rate: int = 60
+) -> None:
+    """creates a video from a list of images"""
 
     if outpath is None:
         outpath = os.path.join(OUTPUT_DIR, "output.mp4")
-
 
     # get image dimensions
     firstimg = cv2.imread(image_paths[0])
@@ -31,8 +32,10 @@ def make_video_from_images(image_paths: list[str], outpath: str = None, frame_ra
     video.release()
 
 
-def make_video_from_image_folder(image_folder: str, outpath: str = None, frame_rate: int = 60) -> None:
-    """ creates a video from a folder of images"""
+def make_video_from_image_folder(
+    image_folder: str, outpath: str = None, frame_rate: int = 60
+) -> None:
+    """creates a video from a folder of images"""
     image_paths = get_files_in_dir(image_folder, [".jpeg", ".jpg", ".png"])
     # order images by creation date otherwise the video will be out of order
     image_paths.sort(key=os.path.getmtime)
@@ -40,7 +43,7 @@ def make_video_from_image_folder(image_folder: str, outpath: str = None, frame_r
 
 
 def video2images(video_path: str, outpath: str = None) -> None:
-    """ creates a video from a list of images
+    """creates a video from a list of images
     video_path: path to video file in mp4
     outpath: folder to save the images (no trailing /)
     """
@@ -67,7 +70,7 @@ def video2images(video_path: str, outpath: str = None) -> None:
 
 
 def extract_audio_from_video(video_path: str, outpath: str = None) -> None:
-    """ extracts audio from a video
+    """extracts audio from a video
     video_path: path to video file in mp4
     outpath: path to save the audio file
     """
@@ -79,15 +82,16 @@ def extract_audio_from_video(video_path: str, outpath: str = None) -> None:
         os.makedirs(outpath)
 
     # ffmpeg -i input.mp4 -vn -acodec copy output-audio.aac
-    #command = "ffmpeg -i C:/test.mp4 -ab 160k -ac 2 -ar 44100 -vn audio.wav"
-    #subprocess.call(command, shell=True)
+    # command = "ffmpeg -i C:/test.mp4 -ab 160k -ac 2 -ar 44100 -vn audio.wav"
+    # subprocess.call(command, shell=True)
     os.system(f"ffmpeg -i {video_path} -vn -acodec copy {outpath}/audio.wav")
 
 
 def upscale_images_in_folder(image_folder: str, outpath: str = None):
     print(f"upscaling images in {image_folder}")
-    path_to_real_esrgan = MODELS_DIR + "/upscaling/realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan.exe"
-
+    path_to_real_esrgan = (
+        MODELS_DIR + "/upscaling/realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan.exe"
+    )
 
     # get imags
     lowres_imgs = get_files_in_dir(image_folder, [".jpeg", ".jpg", ".png"])
@@ -111,12 +115,11 @@ def upscale_video(video_path: str, outpath: str = None):
     """
     Uses ESRGAN to upscale video. The audio is reaplied to the upscaled video.
     """
-    #video2images(video_path, outpath)
-    #extract_audio_from_video(video_path, outpath)
+    # video2images(video_path, outpath)
+    # extract_audio_from_video(video_path, outpath)
     # upscale images
     outupscaled = outpath + "/upscaled"
-    #upscale_images_in_folder(outpath, outupscaled)
-
+    # upscale_images_in_folder(outpath, outupscaled)
 
     # make video from images
     image_paths = get_files_in_dir(outupscaled, [".jpeg", ".jpg", ".png"])
@@ -128,4 +131,6 @@ def upscale_video(video_path: str, outpath: str = None):
         print("Warning: Could not find framerate file. Using default framerate 60.")
         frame_rate = 60
 
-    make_video_from_images(image_paths, outupscaled + "/upscaled.mp4", frame_rate=frame_rate)
+    make_video_from_images(
+        image_paths, outupscaled + "/upscaled.mp4", frame_rate=frame_rate
+    )

@@ -3,6 +3,7 @@ import urllib
 
 from .settings import MODELS_DIR
 
+
 def download_file(download_url: str, save_path: str):
     model_dir = os.path.dirname(save_path)
     if not os.path.isdir(model_dir):
