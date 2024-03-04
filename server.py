@@ -8,17 +8,14 @@ import cv2
 
 import numpy as np
 
-from face_swapper_REST.FaceSwapper import FaceSwapper
+
+from face_swapper_REST.settings import PORT
 from face_swapper_REST.model_downloader import download_face_swap_model
-from face_swapper_REST.settings import DEFAULT_PORT
+from face_swapper_REST.FaceSwapper import FaceSwapper
 
 
-face_swapper = None
-def init_models():
-    global face_swapper
-    if face_swapper is None:
-        download_face_swap_model()
-        face_swapper = FaceSwapper()
+download_face_swap_model()
+face_swapper = FaceSwapper()
 
 
 
@@ -46,9 +43,6 @@ def cv2_to_bytes(img: np.ndarray):
 
 @app.post("/swap_one")
 async def swap_one(source_img: fastapi.UploadFile, target_img: fastapi.UploadFile):
-    # init face swapper class if not existing
-    init_models()
-
     source_img = await upload_file_to_cv2(source_img)
     target_img = await upload_file_to_cv2(target_img)
 
@@ -65,8 +59,7 @@ async def swap_one(source_img: fastapi.UploadFile, target_img: fastapi.UploadFil
 
 @app.post("/add_reference_face")
 async def add_reference_face(face_name: str, source_img: fastapi.UploadFile, save: bool = True):
-    # init face swapper class if not existing
-    init_models()
+
     source_img = await upload_file_to_cv2(source_img)
     face_name, face_embedding = face_swapper.add_reference_face(face_name, source_img, save=save)
 
@@ -79,8 +72,7 @@ async def add_reference_face(face_name: str, source_img: fastapi.UploadFile, sav
 
 @app.post("/swap_from_reference_face")
 async def swap_from_reference_face(face_name: str, target_img: fastapi.UploadFile):
-    # init face swapper class if not existing
-    init_models()
+
     target_img = await upload_file_to_cv2(target_img)
     swapped_img = face_swapper.swap_from_reference_face(face_name, target_img)
     swapped_img = cv2_to_bytes(swapped_img)
@@ -98,6 +90,6 @@ def status():
 
 # start the server on provided port
 arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument("--port", type=int, default=DEFAULT_PORT)
+arg_parser.add_argument("--port", type=int, default=PORT)
 args = arg_parser.parse_args()
 uvicorn.run(app, host="localhost", port=args.port)

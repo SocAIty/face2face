@@ -1,6 +1,6 @@
 setlocal
 set PYTHONPATH=%cd%;
-venv\\Scripts\\python.exe face_swapper_REST\\server.py
+venv\\Scripts\\python.exe server.py
 endlocal
 
 

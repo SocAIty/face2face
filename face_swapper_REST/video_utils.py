@@ -3,15 +3,15 @@ import os
 import cv2
 from tqdm import tqdm
 
-
-#from .utils import DEFAULT_OUTPUT_DIR, get_files_in_dir, MODELS_DIR
+from face_swapper_REST.settings import OUTPUT_DIR, MODELS_DIR
+from face_swapper_REST.utils import get_files_in_dir
 
 
 def make_video_from_images(image_paths: list[str], outpath: str = None, frame_rate: int = 60) -> None:
     """ creates a video from a list of images"""
 
     if outpath is None:
-        outpath = os.path.join(DEFAULT_OUTPUT_DIR, "output.mp4")
+        outpath = os.path.join(OUTPUT_DIR, "output.mp4")
 
 
     # get image dimensions
@@ -46,7 +46,7 @@ def video2images(video_path: str, outpath: str = None) -> None:
     """
 
     if outpath is None:
-        outpath = DEFAULT_OUTPUT_DIR
+        outpath = OUTPUT_DIR
 
     if not os.path.isdir(outpath):
         os.makedirs(outpath)
@@ -73,7 +73,7 @@ def extract_audio_from_video(video_path: str, outpath: str = None) -> None:
     """
 
     if outpath is None:
-        outpath = DEFAULT_OUTPUT_DIR
+        outpath = OUTPUT_DIR
 
     if not os.path.isdir(outpath):
         os.makedirs(outpath)
@@ -129,5 +129,3 @@ def upscale_video(video_path: str, outpath: str = None):
         frame_rate = 60
 
     make_video_from_images(image_paths, outupscaled + "/upscaled.mp4", frame_rate=frame_rate)
-
-

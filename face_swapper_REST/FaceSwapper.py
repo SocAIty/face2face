@@ -14,8 +14,8 @@ import onnxruntime
 
 import pickle
 
-from face_swapper_REST.utils import encode_path_safe, get_files_in_dir
-from face_swapper_REST.settings import MODELS_DIR, DEFAULT_REF_FACES_DIR
+from .utils import encode_path_safe, get_files_in_dir
+from .settings import MODELS_DIR, REF_FACES_DIR
 
 class FileWriteableFace(dict):
     """
@@ -63,7 +63,7 @@ class FaceSwapper:
             model_path = os.path.join(MODELS_DIR, 'insightface')
 
         if reference_faces_folder is None:
-            reference_faces_folder = DEFAULT_REF_FACES_DIR
+            reference_faces_folder = REF_FACES_DIR
 
         self.providers = onnxruntime.get_available_providers()
         self.face_analyser = self._get_face_analyser(model_path, self.providers)
@@ -180,10 +180,10 @@ class FaceSwapper:
         np.save(virtual_file, self.reference_faces[face_name], allow_pickle=True)
 
         if save:
-            if not os.path.isdir(DEFAULT_REF_FACES_DIR):
-                os.makedirs(DEFAULT_REF_FACES_DIR)
+            if not os.path.isdir(REF_FACES_DIR):
+                os.makedirs(REF_FACES_DIR)
 
-            filename = os.path.join(DEFAULT_REF_FACES_DIR, f"{face_name}.npz")
+            filename = os.path.join(REF_FACES_DIR, f"{face_name}.npz")
             if os.path.isfile(filename):
                 print(f"Reference face {face_name} already exists. Overwriting.")
 
