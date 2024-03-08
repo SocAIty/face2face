@@ -1,7 +1,8 @@
 import os
 import urllib
 
-from settings import MODELS_DIR
+from .settings import MODELS_DIR
+
 
 def download_file(download_url: str, save_path: str):
     model_dir = os.path.dirname(save_path)
@@ -18,7 +19,6 @@ def download_file(download_url: str, save_path: str):
 def download_face_swap_model():
     url = "https://github.com/facefusion/facefusion-assets/releases/download/models/inswapper_128.onnx"
     download_file(url, os.path.join(MODELS_DIR, "insightface", "inswapper_128.onnx"))
-
 
 
 if __name__ == "__main__":

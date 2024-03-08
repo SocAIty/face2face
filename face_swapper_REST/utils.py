@@ -3,6 +3,7 @@ import os
 import unicodedata
 import glob
 
+
 def encode_path_safe(filename: str, allow_unicode=False):
     """
     Makes a string path safe by removing / replacing not by the os allowed patterns.
@@ -14,13 +15,17 @@ def encode_path_safe(filename: str, allow_unicode=False):
     if allow_unicode:
         filename = unicodedata.normalize('NFKC', filename)
     else:
-        filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
+        filename = (
+            unicodedata.normalize('NFKD', filename)
+            .encode('ascii', 'ignore')
+            .decode('ascii')
+        )
     filename = re.sub(r'[^\w\s-]', '', filename.lower())
     return re.sub(r'[-\s]+', '-', filename).strip('-_')
 
 
 def get_files_in_dir(path: str, extensions: list | str = None) -> list:
-    """ returns all files in a directory filtered by extension list"""
+    """returns all files in a directory filtered by extension list"""
     if not os.path.isdir(path):
         print(f"{path} is not a directory. Returning empty list")
         return []

@@ -31,7 +31,7 @@ I do not claim any authorship for this repository. My contribution was simply wr
 # Usage
 
 1. Start the server by running the provided .bat file "start_server.bat" 
-   2. or by using `python face_swapper_REST/server.py --port 8020` make sure the python PYTHONPATH is set to the root of this repository.
+   2. or by using `python server.py --port 8020`
 2. To test the server, open `http://localhost:8020/docs` in your browser.
 
 Then make post requests to the server with your favorite tool or library.
