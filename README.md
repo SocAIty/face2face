@@ -90,9 +90,11 @@ In this example it is assumed that previously a face embedding with name "myface
 
 ### Inference via script
 
-You can also use the class FaceSwapper to do the inference. 
+You can also use the class FaceSwapper to do the inference.
+
 ```python
-from face_swapper_REST.face_swapper import FaceSwapper
+from face2face.face_swapper import FaceSwapper
+
 swapper = FaceSwapper()
 swapped = swapper.swap_one("src.jpg", "target.jpg")
 ```

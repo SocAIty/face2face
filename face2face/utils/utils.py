@@ -1,5 +1,6 @@
 import re
 import os
+import urllib
 import unicodedata
 import glob
 
@@ -42,3 +43,15 @@ def get_files_in_dir(path: str, extensions: list | str = None) -> list:
             files.extend(glob.glob(os.path.join(path, "*" + ext)))
 
     return files
+
+
+def download_file(download_url: str, save_path: str):
+    model_dir = os.path.dirname(save_path)
+    if not os.path.isdir(model_dir):
+        os.makedirs(model_dir, exist_ok=True)
+
+    if not os.path.isfile(save_path):
+        print(f'Downloading {download_url}')
+        urllib.request.urlretrieve(download_url, save_path)
+        print(f'Downloaded {download_url}')
+    return save_path

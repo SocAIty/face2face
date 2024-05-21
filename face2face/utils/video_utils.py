@@ -3,8 +3,8 @@ import os
 import cv2
 from tqdm import tqdm
 
-from face_swapper_REST.settings import OUTPUT_DIR, MODELS_DIR
-from face_swapper_REST.utils import get_files_in_dir
+from face2face.settings import OUTPUT_DIR, MODELS_DIR
+from face2face.utils import get_files_in_dir
 
 
 def make_video_from_images(
