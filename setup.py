@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='face2face',
+    name='socaity-face2face',
     version='0.0.1',
     description="Swap faces from one image to another. Create face embeddings. Integrate into hosted environments.",
     author='SocAIty',

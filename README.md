@@ -14,7 +14,7 @@ All of this is wrapped into a convenient REST API with [FAST_API](https://fastap
 
 ### Install via pip
 ```python
-pip install face2face 
+pip install socaity-face2face 
 ```
 or from GitHub for the newest version.
 ```python
