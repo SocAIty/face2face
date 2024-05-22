@@ -2,7 +2,7 @@ import argparse
 from io import BytesIO
 
 import fastapi
-from socaity_router import SocaityRouter
+from socaity_router import SocaityRouter, UploadDataType
 from fastapi.responses import StreamingResponse
 import cv2
 
@@ -40,7 +40,7 @@ def cv2_to_bytes(img: np.ndarray):
 
 
 @router.add_route("/swap_one")
-async def swap_one(source_img: fastapi.UploadFile, target_img: fastapi.UploadFile):
+async def swap_one(source_img: UploadDataType.FILE, target_img: UploadDataType.FILE):
     source_img = await upload_file_to_cv2(source_img)
     target_img = await upload_file_to_cv2(target_img)
 
@@ -57,7 +57,7 @@ async def swap_one(source_img: fastapi.UploadFile, target_img: fastapi.UploadFil
 
 
 @router.add_route("/add_reference_face")
-async def add_reference_face(face_name: str, source_img: fastapi.UploadFile, save: bool = True):
+async def add_reference_face(face_name: str, source_img: UploadDataType.FILE = None, save: bool = True):
     source_img = await upload_file_to_cv2(source_img)
     face_name, face_embedding = f2f.add_reference_face(
         face_name, source_img, save=save
@@ -71,7 +71,7 @@ async def add_reference_face(face_name: str, source_img: fastapi.UploadFile, sav
 
 
 @router.add_route("/swap_from_reference_face")
-async def swap_from_reference_face(face_name: str, target_img: fastapi.UploadFile):
+async def swap_from_reference_face(face_name: str, target_img: UploadDataType.FILE = None):
     target_img = await upload_file_to_cv2(target_img)
     swapped_img = f2f.swap_from_reference_face(face_name, target_img)
     swapped_img = cv2_to_bytes(swapped_img)
