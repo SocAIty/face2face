@@ -57,7 +57,7 @@ swapped_img = f2f.swap_one(cv2.imread("src.jpg"), cv2.imread("target.jpg"))
 
 Create an face embedding with the add_reference_face function and later swap faces with the swap_from_reference_face function.
 
-If argument save=true is set, the face embedding is saved to disc and the f2f.swap_from_reference_face function can be used later with the same face_name.
+If argument save=true is set, the face embedding is persisted and the f2f.swap_from_reference_face function can be used later with the same face_name, even after restarting the project.
 ```python
 f2f.add_reference_face("hagrid", source_img, save=True)
 swapped = f2f.swap_from_reference_face("hagrid", target_img)

@@ -9,12 +9,11 @@ setup(
     install_requires=[
         'insightface==0.7.3',
         'onnxruntime-gpu==1.15.1',
+        'socaity-router'
         'tqdm',
         'opencv-python',
         'numpy',
-        'fastapi',
         'python-multipart',
-        'uvicorn',
         'requests'
     ]
 )

@@ -1,9 +1,8 @@
 insightface==0.7.3
 onnxruntime-gpu==1.15.1
+socaity-router==0.0.1
 tqdm
 opencv-python
 numpy
-fastapi
 python-multipart
-uvicorn
 requests

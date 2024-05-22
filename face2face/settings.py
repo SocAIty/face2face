@@ -7,3 +7,4 @@ REF_FACES_DIR = os.getenv("REF_FACES_DIR", os.path.join(ROOT_DIR, "face_embeddin
 MODEL_DOWNLOAD_URL = "https://github.com/facefusion/facefusion-assets/releases/download/models/inswapper_128.onnx"
 
 PORT = 8020
+PROVIDER = os.getenv("PROVIDER", "fastapi")

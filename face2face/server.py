@@ -2,25 +2,27 @@ import argparse
 from io import BytesIO
 
 import fastapi
-import uvicorn
+from socaity_router import SocaityRouter
 from fastapi.responses import StreamingResponse
 import cv2
 
 import numpy as np
 
-from face2face.settings import PORT
+from face2face.settings import PORT, PROVIDER
 from face2face.core.face2face import Face2Face
 
 f2f = Face2Face()
-
-app = fastapi.FastAPI(
-    title="Face2Face FastAPI",
-    summary="Swap faces from images. Create face embeddings. Integrate into hosted environments.",
-    version="0.0.1",
-    contact={
-        "name": "w4hns1nn",
-        "url": "https://github.com/w4hns1nn",
-    }
+router = SocaityRouter(
+    provider=PROVIDER,
+    app=fastapi.FastAPI(
+        title="Face2Face FastAPI",
+        summary="Swap faces from images. Create face embeddings. Integrate into hosted environments.",
+        version="0.0.2",
+        contact={
+            "name": "SocAIty",
+            "url": "https://github.com/SocAIty",
+        }
+    ),
 )
 
 
@@ -37,7 +39,7 @@ def cv2_to_bytes(img: np.ndarray):
     return io_buf
 
 
-@app.post("/swap_one")
+@router.add_route("/swap_one")
 async def swap_one(source_img: fastapi.UploadFile, target_img: fastapi.UploadFile):
     source_img = await upload_file_to_cv2(source_img)
     target_img = await upload_file_to_cv2(target_img)
@@ -54,10 +56,8 @@ async def swap_one(source_img: fastapi.UploadFile, target_img: fastapi.UploadFil
     )
 
 
-@app.post("/add_reference_face")
-async def add_reference_face(
-        face_name: str, source_img: fastapi.UploadFile, save: bool = True
-):
+@router.add_route("/add_reference_face")
+async def add_reference_face(face_name: str, source_img: fastapi.UploadFile, save: bool = True):
     source_img = await upload_file_to_cv2(source_img)
     face_name, face_embedding = f2f.add_reference_face(
         face_name, source_img, save=save
@@ -70,7 +70,7 @@ async def add_reference_face(
     )
 
 
-@app.post("/swap_from_reference_face")
+@router.add_route("/swap_from_reference_face")
 async def swap_from_reference_face(face_name: str, target_img: fastapi.UploadFile):
     target_img = await upload_file_to_cv2(target_img)
     swapped_img = f2f.swap_from_reference_face(face_name, target_img)
@@ -84,19 +84,12 @@ async def swap_from_reference_face(face_name: str, target_img: fastapi.UploadFil
         },
     )
 
-
-@app.get("/status")
-def status():
-    return {"status": "ok"}
-
-
-def start_server(port: int = PORT, host="localhost"):
-    uvicorn.run(app, host=host, port=port)
-
+def start_server(port: int = PORT):
+    router.start(port=port)
 
 # start the server on provided port
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--port", type=int, default=PORT)
     args = arg_parser.parse_args()
-    start_server(args.port)
+    start_server(port=args.port)
