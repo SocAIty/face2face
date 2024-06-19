@@ -2,7 +2,9 @@ import argparse
 from io import BytesIO
 
 import fastapi
-from socaity_router import SocaityRouter, UploadDataType
+
+from multimodal_files import MultiModalFile
+from socaity_router import SocaityRouter, ImageFile
 from fastapi.responses import StreamingResponse
 import cv2
 
@@ -15,7 +17,7 @@ f2f = Face2Face()
 router = SocaityRouter(
     provider=PROVIDER,
     app=fastapi.FastAPI(
-        title="Face2Face FastAPI",
+        title="Face2Face service",
         summary="Swap faces from images. Create face embeddings. Integrate into hosted environments.",
         version="0.0.2",
         contact={
@@ -25,64 +27,21 @@ router = SocaityRouter(
     ),
 )
 
-
-async def upload_file_to_cv2(file: fastapi.UploadFile):
-    contents = await file.read()
-    nparr = np.frombuffer(contents, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    return img
-
-
-def cv2_to_bytes(img: np.ndarray):
-    is_success, buffer = cv2.imencode(".png", img)
-    io_buf = BytesIO(buffer)
-    return io_buf
-
-
 @router.add_route("/swap_one")
-async def swap_one(source_img: UploadDataType.FILE, target_img: UploadDataType.FILE):
-    source_img = await upload_file_to_cv2(source_img)
-    target_img = await upload_file_to_cv2(target_img)
-
-    swapped_img = f2f.swap_one_image(source_img, target_img)
-    swapped_img = cv2_to_bytes(swapped_img)
-
-    out_file_name = "swapped_img.png"
-
-    return StreamingResponse(
-        swapped_img,
-        media_type="png",
-        headers={"Content-Disposition": f"attachment; filename={out_file_name}"},
-    )
-
+def swap_one(source_img: ImageFile, target_img: ImageFile):
+    swapped_img = f2f.swap_one_image(np.array(source_img), np.array(target_img))
+    return ImageFile(file_name="swapped_img.png").from_np_array(swapped_img)
 
 @router.add_route("/add_reference_face")
-async def add_reference_face(face_name: str, source_img: UploadDataType.FILE = None, save: bool = True):
-    source_img = await upload_file_to_cv2(source_img)
-    face_name, face_embedding = f2f.add_reference_face(
-        face_name, source_img, save=save
-    )
-
-    return StreamingResponse(
-        face_embedding,
-        media_type="application/octet-stream",
-        headers={"Content-Disposition": f"attachment; filename={face_name}.npz"},
-    )
-
+def add_reference_face(face_name: str, source_img: ImageFile = None, save: bool = True):
+    face_name, face_embedding = f2f.add_reference_face(face_name, np.array(source_img), save=save)
+    return MultiModalFile(file_name=f"{face_name}.npz").from_np_array(face_embedding)
 
 @router.add_route("/swap_from_reference_face")
-async def swap_from_reference_face(face_name: str, target_img: UploadDataType.FILE = None):
-    target_img = await upload_file_to_cv2(target_img)
-    swapped_img = f2f.swap_from_reference_face(face_name, target_img)
-    swapped_img = cv2_to_bytes(swapped_img)
+async def swap_from_reference_face(face_name: str, target_img: ImageFile = None):
+    swapped_img = f2f.swap_from_reference_face(face_name, np.array(target_img))
+    return ImageFile(file_name=f"swapped_to_{face_name}.png").from_np_array(swapped_img)
 
-    return StreamingResponse(
-        swapped_img,
-        media_type="png",
-        headers={
-            "Content-Disposition": f"attachment; filename={face_name}_swapped.png"
-        },
-    )
 
 def start_server(port: int = PORT):
     router.start(port=port)
