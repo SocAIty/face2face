@@ -9,7 +9,7 @@ setup(
     install_requires=[
         'insightface==0.7.3',
         'onnxruntime-gpu==1.15.1',
-        'socaity-router'
+        'socaity-app'
         'tqdm',
         'opencv-python',
         'numpy',

@@ -137,6 +137,7 @@ class Face2Face:
             return None
 
         try:
+            # note: potential security issue, if the file was not created with face2face
             read_face = np.load(face_embedding_file_path, allow_pickle=True)
             return FileWriteableFace.to_face(read_face)
         except Exception as e:
@@ -181,7 +182,7 @@ class Face2Face:
         # save face to virtual file
         virtual_file = BytesIO()
         np.save(virtual_file, self.reference_faces[face_name], allow_pickle=True)
-
+        virtual_file.seek(0)
         if save:
             if not os.path.isdir(REF_FACES_DIR):
                 os.makedirs(REF_FACES_DIR)
@@ -193,6 +194,7 @@ class Face2Face:
             with open(filename, "wb") as f:
                 f.write(virtual_file.getbuffer())
 
+        virtual_file.seek(0)
         return face_name, virtual_file
 
     def swap_from_reference_face(self, face_name: str, target_image: Union[np.array, list]) -> np.array:
@@ -208,7 +210,7 @@ class Face2Face:
         if face_name not in self.reference_faces:
             embedding = self.load_reference_face(face_name)
             if embedding is None:
-                raise Exception(f"Reference face {face_name} not found. "
+                raise ValueError(f"Reference face {face_name} not found. "
                             f"Please add the reference face first with add_reference_face")
 
         if type(target_image) == list:
@@ -219,4 +221,3 @@ class Face2Face:
         source_faces = [FileWriteableFace.to_face(fwf) for fwf in self.reference_faces[face_name]]
 
         return self._swap_detected_faces(source_faces, target_faces, target_image)
-

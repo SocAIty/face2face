@@ -139,4 +139,7 @@ I do not claim any authorship for this repository. My contribution was simply wr
 # Contribute
 
 Any help with maintaining and extending the package is welcome. Feel free to open an issue or a pull request.
-ToDo: make inference faster by implementing batching.
+ToDo: 
+[x] make inference faster by implementing batching.
+[x] create real streaming
+[x] improve streaming speed  
