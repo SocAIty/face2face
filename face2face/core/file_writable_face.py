@@ -32,7 +32,14 @@ class FileWriteableFace(dict):
 
     @staticmethod
     def to_face(pickle_safe_face):
-        if type(pickle_safe_face) == Face:
+        if type(pickle_safe_face) in [np.array, np.ndarray, list]:
+            if len(pickle_safe_face) > 1:
+                print("Warning: to_face only works with one face. Returning first face.")
+            elif len(pickle_safe_face) == 0:
+                raise ValueError("Warning: to_face only works with one face. Provided empty list.")
+            pickle_safe_face = pickle_safe_face[0]
+
+        if isinstance(pickle_safe_face, Face):
             return pickle_safe_face
         f = Face(pickle_safe_face)
         return f

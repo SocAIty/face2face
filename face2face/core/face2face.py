@@ -9,6 +9,7 @@ import numpy as np
 # model imports
 import insightface
 import onnxruntime
+from insightface.app.common import Face
 
 from face2face.core.file_writable_face import FileWriteableFace
 from face2face.utils.utils import encode_path_safe, get_files_in_dir, download_file
@@ -69,28 +70,30 @@ class Face2Face:
         except IndexError:
             return None
 
-
     def _swap_detected_faces(self, source_faces, target_faces, target_image: np.array) -> np.array:
         """
-        Changes the face(s) of the target image to the face of the source image.
+        Changes the face(s) of the target image to the face(s) of the source image.
+        if there are more target faces than source faces, the source face index is reset
         source_faces: the source faces
         target_image: the target image in BGR format (read with cv2)
         """
-
-        if source_faces is None:
+        if source_faces is None or len(source_faces) == 0:
             raise Exception("No source faces found!")
 
-        if target_faces is None:
-            print(f"No face found in {target_image}. Return image as is")
+        if target_faces is None or len(target_faces) == 0:
+            print(f"No face found in image. Return image as is")
             return target_image
 
         result = copy.deepcopy(target_image)
 
+        # iter through all target faces and swap them with the source faces
+        # if there are more target faces than source faces, the source face index is reset
         for target_index in range(len(target_faces)):
+            source_index = target_index % len(source_faces)  # 6 % 5 = 1 and 1 % 5 = 1 ...
             result = self._face_swapper.get(
                 result,  # in place operation
-                target_faces[target_index],  # There is only one source face.
-                source_faces[0],
+                target_faces[target_index],
+                source_faces[source_index],
                 paste_back=True,
             )
 
@@ -100,7 +103,7 @@ class Face2Face:
         self, source_image: np.array, target_image: np.array
     ) -> np.array:
         """
-        Changes the face(s) of the target image to the face of the source image.
+        Changes the face(s) of the target image to the face(s) of the source image.
         source_image: the source image in BGR format (read with cv2)
         target_image: the target image in BGR format (read with cv2)
         """
@@ -114,19 +117,31 @@ class Face2Face:
         target_faces = self.get_many_faces(target_image)
         return self._swap_detected_faces(source_faces, target_faces, target_image)
 
-    def load_reference_face(self, face_name: str):
+    def load_reference_embedding(self, face_name: str) -> Union[List[Face], None]:
         """
-        Load a reference face from a file.
-        :param face_name: the name of the reference face
-        :return: the reference face
+        Load a reference face embedding from a file.
+        :param face_name: the name of the reference face embedding
+        :return: the embedding of the reference face(s)
         """
+        # check if is already in ram. If yes return that one
+        embedding = self.reference_faces.get(face_name, None)
+        if embedding is not None:
+            return embedding
+
+        # load from file
         file = os.path.join(self._reference_faces_folder, f"{face_name}.npz")
         embedding = Face2Face.__load_reference_face_from_file(file)
+
+        if embedding is None:
+            raise ValueError(f"Reference face {face_name} not found. "
+                             f"Please add the reference face first with add_reference_face")
+
+        # add to memory dict
         self.reference_faces[face_name] = embedding
         return embedding
 
     @staticmethod
-    def __load_reference_face_from_file(face_embedding_file_path: str) -> Union[FileWriteableFace, None]:
+    def __load_reference_face_from_file(face_embedding_file_path: str) -> Union[List[Face], None]:
         """
         Load a reference face from a file.
         :param face_embedding_file_path: the file path of the reference face
@@ -138,10 +153,15 @@ class Face2Face:
 
         try:
             # note: potential security issue, if the file was not created with face2face
-            read_face = np.load(face_embedding_file_path, allow_pickle=True)
-            return FileWriteableFace.to_face(read_face)
+            embedding = np.load(face_embedding_file_path, allow_pickle=True)
+            if len(embedding) > 0:
+                embedding = [FileWriteableFace.to_face(face) for face in embedding]
+
+            return embedding
         except Exception as e:
             print(f"Error loading reference face {face_embedding_file_path}: {e}")
+
+
 
     @staticmethod
     def __load_reference_faces_from_folder(folder_path: str) -> dict:
@@ -206,18 +226,25 @@ class Face2Face:
         """
         face_name = encode_path_safe(face_name)
 
-        # load reference face if not existing
-        if face_name not in self.reference_faces:
-            embedding = self.load_reference_face(face_name)
-            if embedding is None:
-                raise ValueError(f"Reference face {face_name} not found. "
-                            f"Please add the reference face first with add_reference_face")
+        # if target_image is a list of images, swap all images
+        if isinstance(target_image, list):
+            return list(self.swap_from_reference_face_generator(face_name, target_image))
 
-        if type(target_image) == list:
-            # if target_image is a list of images, swap all images
-            return [self.swap_from_reference_face(face_name, img) for img in target_image]
-
+        # swap single image
+        source_faces = self.load_reference_embedding(face_name)
         target_faces = self.get_many_faces(target_image)
-        source_faces = [FileWriteableFace.to_face(fwf) for fwf in self.reference_faces[face_name]]
-
         return self._swap_detected_faces(source_faces, target_faces, target_image)
+
+    def swap_from_reference_face_generator(self, face_name: str, target_img_generator):
+        """
+        Changes the face(s) of each image in the target_img_generator to the face of the reference image.
+        :param face_name: the name of the reference face
+        :param target_img_generator: a generator that yields images in BGR format (read with cv2)
+        :return: a generator that yields the swapped images
+        """
+        face_name = encode_path_safe(face_name)
+        source_faces = self.load_reference_embedding(face_name)
+
+        for target_image in target_img_generator:
+            target_faces = self.get_many_faces(target_image)
+            yield self._swap_detected_faces(source_faces, target_faces, target_image)

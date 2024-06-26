@@ -3,9 +3,9 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fast-task-api"
-version = "0.0.0"
-description="Create web-APIs for long-running tasks"
+name = "socaity-face2face"
+version = "0.0.2"
+description="Swap faces from one image to another. Create face embeddings. Integrate into hosted environments."
 requires-python = ">=3.8"
 authors = [
     { name = "SocAIty" }
@@ -13,10 +13,10 @@ authors = [
 license = { text = "GPLv3" }
 readme = "README.md"
 dependencies = [
-    "uvicorn",
-    "fastapi",
-    "runpod>=1.6.0",
-    "media-toolkit>=0.0.0"
+    'numpy',
+    'opencv-python>=4.10.0.80',
+    'insightface==0.7.3',
+    'onnxruntime-gpu==1.15.1'
 ]
 
 [project.urls]
@@ -25,8 +25,9 @@ Repository = "https://github.com/SocAIty/fast-task-api"
 
 [project.optional-dependencies]
 full = [
-    "uvicorn",
-    "fastapi",
-    "runpod>=1.6.0",
-    "media-toolkit>=0.0.0"
+    'numpy',
+    'opencv-python>=4.10.0.80',
+    'insightface==0.7.3',
+    'onnxruntime-gpu==1.15.1',
+    "fast-task-api[full]"
 ]

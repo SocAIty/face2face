@@ -1,13 +1,13 @@
 import argparse
 import fastapi
 
-from multimodal_files import MultiModalFile, VideoFile
-from fast_task_api import FastTaskAPI, ImageFile, JobProgress
+from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile
 
 import numpy as np
 
 from face2face.settings import PORT, PROVIDER
 from face2face.core.face2face import Face2Face
+f2f = Face2Face()
 
 
 #f2f = Face2Face()
@@ -15,7 +15,7 @@ app = FastTaskAPI(
     provider=PROVIDER,
     app=fastapi.FastAPI(
         title="Face2Face service",
-        summary="Swap faces from images. Create face embeddings.",
+        summary="Swap faces from images and videos. Create face embeddings.",
         version="0.0.2",
         contact={
             "name": "SocAIty",
@@ -32,7 +32,7 @@ def swap_one(source_img: ImageFile, target_img: ImageFile):
 @app.task_endpoint("/add_reference_face", queue_size=100)
 def add_reference_face(face_name: str, source_img: ImageFile = None, save: bool = True):
     face_name, face_embedding = f2f.add_reference_face(face_name, np.array(source_img), save=save)
-    return MultiModalFile(file_name=f"{face_name}.npz").from_bytesio(face_embedding)
+    return MediaFile(file_name=f"{face_name}.npz").from_bytesio(face_embedding)
 
 @app.task_endpoint("/swap_from_reference_face", queue_size=100)
 def swap_from_reference_face(face_name: str, target_img: ImageFile = None):
@@ -44,9 +44,9 @@ def _swapped_video_stream_gen(face_name: str, target_video: VideoFile):
     for image, audio in target_video.to_video_stream():
         # Swap
         try:
-            swapped_img = np.array(image)
-            #swapped_img = f2f.swap_from_reference_face(face_name, np.array(image))
-        except:
+            swapped_img = f2f.swap_from_reference_face(face_name=face_name, target_image=np.array(image))
+        except Exception as e:
+            print(f"Error in swapping to {face_name}: {e} ")
             swapped_img = np.array(image)
 
         yield swapped_img, audio
@@ -64,15 +64,13 @@ def swap_video_from_reference_face(job_progress: JobProgress, face_name: str, ta
             # Yield the image
             yield swapped_img, audio
 
-
-    vid = list(video_stream_gen())
-
     # Create video
-    #output_video = VideoFile().from_video_stream(video_stream_gen(), target_video.frame_rate)
-    output_video = VideoFile()
+    output_video = VideoFile().from_video_stream(
+        video_audio_stream=video_stream_gen(),
+        frame_rate=target_video.frame_rate,
+        audio_sample_rate=target_video.audio_sample_rate
+    )
     return output_video
-
-# streaming endpoint
 
 
 def start_server(port: int = PORT):
