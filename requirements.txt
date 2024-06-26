@@ -1,6 +1,5 @@
+numpy
+opencv-python>=4.10.0.80
 insightface==0.7.3
 onnxruntime-gpu==1.15.1
-fast-task-api
-tqdm
-opencv-python
-numpy
+fast-task-api[full]
