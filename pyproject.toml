@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fast-task-api"
+version = "0.0.0"
+description="Create web-APIs for long-running tasks"
+requires-python = ">=3.8"
+authors = [
+    { name = "SocAIty" }
+]
+license = { text = "GPLv3" }
+readme = "README.md"
+dependencies = [
+    "uvicorn",
+    "fastapi",
+    "runpod>=1.6.0",
+    "media-toolkit>=0.0.0"
+]
+
+[project.urls]
+Repository = "https://github.com/SocAIty/fast-task-api"
+
+
+[project.optional-dependencies]
+full = [
+    "uvicorn",
+    "fastapi",
+    "runpod>=1.6.0",
+    "media-toolkit>=0.0.0"
+]
