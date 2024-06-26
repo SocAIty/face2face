@@ -13,8 +13,10 @@ from insightface.app.common import Face
 
 from face2face.core.file_writable_face import FileWriteableFace
 from face2face.core.f2f_loader import get_face_analyser, load_reference_face_from_file
-from face2face.utils.utils import encode_path_safe, get_files_in_dir, download_file
+from face2face.server import f2f
+from face2face.utils.utils import encode_path_safe, download_file
 from face2face.settings import MODELS_DIR, REF_FACES_DIR, MODEL_DOWNLOAD_URL
+from media_toolkit import VideoFile
 
 
 class Face2Face:
@@ -176,14 +178,14 @@ class Face2Face:
 
         # if target_image is a list of images, swap all images
         if isinstance(target_image, list):
-            return list(self.swap_from_reference_face_generator(face_name, target_image))
+            return list(self.swap_generator(face_name, target_image))
 
         # swap single image
         source_faces = self.load_reference_embedding(face_name)
         target_faces = self.get_many_faces(target_image)
         return self._swap_detected_faces(source_faces, target_faces, target_image)
 
-    def swap_from_reference_face_generator(self, face_name: str, target_img_generator):
+    def swap_generator(self, face_name: str, target_img_generator):
         """
         Changes the face(s) of each image in the target_img_generator to the face of the reference image.
         :param face_name: the name of the reference face
@@ -194,5 +196,36 @@ class Face2Face:
         source_faces = self.load_reference_embedding(face_name)
 
         for target_image in target_img_generator:
-            target_faces = self.get_many_faces(target_image)
-            yield self._swap_detected_faces(source_faces, target_faces, target_image)
+            try:
+                target_faces = self.get_many_faces(target_image)
+                yield self._swap_detected_faces(source_faces, target_faces, target_image)
+            except Exception as e:
+                print(f"Error in swapping to {face_name}: {e}. Skipping image")
+                yield np.array(target_image)
+
+    def swap_video(self, face_name: str, target_video):
+        """
+        Swaps the face of the target video to the face of the reference image.
+        :param face_name: the name of the reference face embedding
+        :param target_video: the target video. Path to the file or VideoFile object
+        """
+        try:
+            from media_toolkit import VideoFile
+        except:
+            raise ImportError("Please install socaity media_toolkit to use this function")
+
+        if isinstance(target_video, str):
+            target_video = VideoFile().from_file(target_video)
+
+        if not isinstance(target_video, VideoFile):
+            raise ValueError("target_video must be a path or a VideoFile object")
+
+        new_video = VideoFile().from_video_stream(
+            video_audio_stream=self.swap_generator(face_name, target_video),
+            frame_rate=target_video.frame_rate,
+            audio_sample_rate=target_video.audio_sample_rate
+        )
+        return new_video
+
+
+

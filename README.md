@@ -17,7 +17,7 @@ The endpoint allows you to easily deploy face swapping as a service, but also fo
 # Setup
 
 ### Install via pip
-We 
+Depending on your use case you can install the package with or without the service.
 ```python
 # face2face without service (only for inference from script)
 pip install socaity-face2face 
@@ -29,7 +29,7 @@ pip install git+https://github.com/SocAIty/face2face
 
 For GPU acceleration also install
 pytorch gpu version (with `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`)
-For support of VideoFiles in the webservice you also need to install ffmpg.
+For support of VideoFiles in the webservice you also need to install [ffmpeg](https://ffmpeg.org/download.html)
 
 ### Install and work with the GitHub repository
 1. Clone the repository.
@@ -41,9 +41,9 @@ For support of VideoFiles in the webservice you also need to install ffmpg.
 # Usage
 
 We provide three ways to use the face swapping functionality.
-1. Directly from the script if the package was installed via pip.
-2. Via the REST API.
-3. As part of the socaity package.
+1. [Direct module import and inference](#Inference-from-script) 
+2. [By deploying and calling the web service](#Web Service)
+3. As part of the socaity module.  # coming soon
 
 
 ## Inference from script
@@ -67,18 +67,30 @@ Create an face embedding with the add_reference_face function and later swap fac
 
 If argument save=true is set, the face embedding is persisted and the f2f.swap_from_reference_face function can be used later with the same face_name, even after restarting the project.
 ```python
-f2f.add_reference_face("hagrid", source_img, save=True)
+embedding = f2f.add_reference_face("hagrid", source_img, save=True)
 swapped = f2f.swap_from_reference_face("hagrid", target_img)
 ```
 
-### Face swapping in a video or list of images
+### Swap the faces in an video
 Swap faces in a video. The video is read frame by frame and the faces are swapped.
 ```python
+swapped_video = f2f.swap_video(face_name="hagrid", target_video="my_video.mp4")
+```
+To use this function you need to install ```socaity-face2face[service]``` or the media_toolkit package.
 
+### Face swapping with a generator
+Iteratively swapping from a list of images 
+```python
+def my_image_generator():
+    for i in range(100):
+        yield cv2.imread(f"image_{i}.jpg")
+
+for swapped_img in f2f.swap_generator(face_name="hagrid", target_img_generator=my_image_generator()):
+    cv2.imshow("swapped", swapped_img)
+    cv2.waitKey(1)
 ```
 
-
-## Inference from REST API
+## Web Service
 1. Start the server by running the provided .bat file "start_server.bat" 
    2. or by using `python face_swapper_REST/server.py --port 8020` make sure the python PYTHONPATH is set to the root of this repository.
    3. or if module was installed via pypi by running `from face2face.server import start_server` and then `start_server(port=8020)`
@@ -143,7 +155,13 @@ In this example it is assumed that previously a face embedding with name "myface
 ### Swap the face in an entire video
 
 ```python
-
+import httpx
+from media_toolkit import VideoFile
+my_video = VideoFile("my_video.mp4")
+swapped_video = httpx.post(
+   "http://localhost:8020/swap_video", params={ "face_name" : "myface"}, 
+    files={"target_video": my_video.to_httpx_send_able_tuple()}
+)
 ```
 
 

@@ -7,6 +7,7 @@ import numpy as np
 
 from face2face.settings import PORT, PROVIDER
 from face2face.core.face2face import Face2Face
+
 f2f = Face2Face()
 
 
@@ -40,23 +41,12 @@ def swap_from_reference_face(face_name: str, target_img: ImageFile = None):
     return ImageFile(file_name=f"swapped_to_{face_name}.png").from_np_array(swapped_img)
 
 
-def _swapped_video_stream_gen(face_name: str, target_video: VideoFile):
-    for image, audio in target_video.to_video_stream():
-        # Swap
-        try:
-            swapped_img = f2f.swap_from_reference_face(face_name=face_name, target_image=np.array(image))
-        except Exception as e:
-            print(f"Error in swapping to {face_name}: {e} ")
-            swapped_img = np.array(image)
-
-        yield swapped_img, audio
-
 @app.task_endpoint("/swap_video_from_reference_face", queue_size=1)
-def swap_video_from_reference_face(job_progress: JobProgress, face_name: str, target_video: VideoFile):
+def swap_video(job_progress: JobProgress, face_name: str, target_video: VideoFile):
     # generator reads the video stream and swaps the faces frame by frame
     def video_stream_gen():
         # Swap the images one by one
-        for i, (swapped_img, audio) in enumerate(_swapped_video_stream_gen(face_name, target_video)):
+        for i, (swapped_img, audio) in enumerate(f2f.swap_generator(face_name, target_video)):
             # update progress. Swapping is 90% of the work
             percent_converted = float(i / target_video.frame_count)
             percent_total = round(percent_converted * 0.9, 2)
