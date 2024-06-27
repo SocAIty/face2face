@@ -13,10 +13,9 @@ from insightface.app.common import Face
 
 from face2face.core.file_writable_face import FileWriteableFace
 from face2face.core.f2f_loader import get_face_analyser, load_reference_face_from_file
-from face2face.server import f2f
 from face2face.utils.utils import encode_path_safe, download_file
 from face2face.settings import MODELS_DIR, REF_FACES_DIR, MODEL_DOWNLOAD_URL
-from media_toolkit import VideoFile
+
 
 
 class Face2Face:

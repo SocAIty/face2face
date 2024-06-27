@@ -9,9 +9,6 @@ from face2face.settings import PORT, PROVIDER
 from face2face.core.face2face import Face2Face
 
 f2f = Face2Face()
-
-
-#f2f = Face2Face()
 app = FastTaskAPI(
     provider=PROVIDER,
     app=fastapi.FastAPI(
@@ -41,7 +38,7 @@ def swap_from_reference_face(face_name: str, target_img: ImageFile = None):
     return ImageFile(file_name=f"swapped_to_{face_name}.png").from_np_array(swapped_img)
 
 
-@app.task_endpoint("/swap_video_from_reference_face", queue_size=1)
+@app.task_endpoint("/swap_video", queue_size=1)
 def swap_video(job_progress: JobProgress, face_name: str, target_video: VideoFile):
     # generator reads the video stream and swaps the faces frame by frame
     def video_stream_gen():
