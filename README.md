@@ -111,7 +111,7 @@ for swapped_img in f2f.swap_generator(face_name="hagrid", target_img_generator=m
    3. or if module was installed via pypi by running `from face2face.server import start_server` and then `start_server(port=8020)`
 2. To test the server, open `http://localhost:8020/docs` in your browser. You should see the openapi documentation.
 
-![image of openapi server](docs/example_server.PNG)
+![image of openapi server](docs/example_server.png)
 
 Note: The first time you start the server, it will download the models. This can take a while.
 If this fails, you can download the files manually and store them in models/ or models/insightface/inswapper_128.onnx
