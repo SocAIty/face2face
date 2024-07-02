@@ -39,7 +39,7 @@ def swap_from_reference_face(face_name: str, target_img: ImageFile = None):
 
 
 @app.task_endpoint("/swap_video", queue_size=1)
-def swap_video(job_progress: JobProgress, face_name: str, target_video: VideoFile):
+def swap_video(job_progress: JobProgress, face_name: str, target_video: VideoFile, include_audio: bool = True):
     # generator reads the video stream and swaps the faces frame by frame
     def video_stream_gen():
         # Swap the images one by one

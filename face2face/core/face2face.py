@@ -184,29 +184,43 @@ class Face2Face:
         target_faces = self.get_many_faces(target_image)
         return self._swap_detected_faces(source_faces, target_faces, target_image)
 
-    def swap_generator(self, face_name: str, target_img_generator):
+    def swap_generator(self, face_name: str, target_generator):
         """
         Changes the face(s) of each image in the target_img_generator to the face of the reference image.
         :param face_name: the name of the reference face
-        :param target_img_generator: a generator that yields images in BGR format (read with cv2)
-        :return: a generator that yields the swapped images
+        :param target_generator: a generator that yields images in BGR format (read with cv2).
+            Or a video_stream that yields (image, audio) like in media_toolkit.
+        :return: a generator that yields the swapped images or a tuple (image, audio)
         """
         face_name = encode_path_safe(face_name)
         source_faces = self.load_reference_embedding(face_name)
 
-        for target_image in target_img_generator:
+        for i, target_image in enumerate(target_generator):
+            # check if generator yields tuples (video, audio) or only images
+            audio = None
+            if isinstance(target_image, tuple) and len(target_image) == 2:
+                target_image, audio = target_image
+
             try:
                 target_faces = self.get_many_faces(target_image)
-                yield self._swap_detected_faces(source_faces, target_faces, target_image)
+                swapped = self._swap_detected_faces(source_faces, target_faces, target_image)
+                if audio is not None:
+                    yield swapped, audio
+
+                yield swapped
             except Exception as e:
-                print(f"Error in swapping to {face_name}: {e}. Skipping image")
+                print(f"Error in swapping frame {i} to {face_name}: {e}. Skipping image")
+                if audio is not None:
+                    yield target_image, audio
+
                 yield np.array(target_image)
 
-    def swap_video(self, face_name: str, target_video):
+    def swap_video(self, face_name: str, target_video, include_audio: bool = True):
         """
         Swaps the face of the target video to the face of the reference image.
         :param face_name: the name of the reference face embedding
         :param target_video: the target video. Path to the file or VideoFile object
+        :param include_audio: if True, the audio will be included in the output video
         """
         try:
             from media_toolkit import VideoFile
@@ -219,8 +233,10 @@ class Face2Face:
         if not isinstance(target_video, VideoFile):
             raise ValueError("target_video must be a path or a VideoFile object")
 
+        gen = target_video.to_video_stream() if include_audio else target_video.to_image_stream()
+
         new_video = VideoFile().from_video_stream(
-            video_audio_stream=self.swap_generator(face_name, target_video),
+            video_audio_stream=self.swap_generator(face_name, gen),
             frame_rate=target_video.frame_rate,
             audio_sample_rate=target_video.audio_sample_rate
         )

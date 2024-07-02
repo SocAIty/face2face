@@ -1,49 +1,63 @@
 # Face2Face
 
-Face2Face is a generative AI technology to swap faces (aka Deep Fake) in images from one to another. For example you can swap your face with Mona Lisa our your favourite superstar. 
-
+Face2Face is a generative AI technology to swap faces (aka Deep Fake) in images from one to another. 
+For example, you can swap your face with Mona Lisa or your favorite celebrity.
 
 With this repository you can:
 
-- Swap faces from one image to another. Powered by [Insightface](https://github.com/deepinsight/insightface)
+- Swap faces from one image to another. 
 - Swap faces in an entire video.
 - Create face embeddings. With these embeddings you can later swap faces without running the whole stack again.
+- Run face swapping as a service.
 
 All of this is wrapped into a convenient web (openAPI) API with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
-The service provides additional features:
-- OpenAPI endpoint documentation
 The endpoint allows you to easily deploy face swapping as a service, but also for example to create
+The face swapping model itself was created by [Insightface](https://github.com/deepinsight/insightface)
+This is a one shot model; for this reason only one face is needed to swap. It should work for all kinds of content, also for anime.
+
+
+## Example swaps
+
+<table>
+<td width="55%"><img src="docs/juntos.jpg"/></td>
+<td><img src="docs/pig.jpg" /></td>
+</table>
+
+
+
+
 
 # Setup
 
 ### Install via pip
 Depending on your use case you can install the package with or without the service.
-```python
+```bash
 # face2face without service (only for inference from script)
 pip install socaity-face2face 
 # full package with service
 pip install socaity-face2face[service]
-#or from GitHub for the newest version.
+# or from GitHub for the newest version.
 pip install git+https://github.com/SocAIty/face2face
 ```
 
-For GPU acceleration also install
+Additional dependencies:
+- For GPU acceleration also install
 pytorch gpu version (with `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`)
-For support of VideoFiles in the webservice you also need to install [ffmpeg](https://ffmpeg.org/download.html)
+- For VideoFile support in the webservice you also need to install [ffmpeg](https://ffmpeg.org/download.html)
 
 ### Install and work with the GitHub repository
 1. Clone the repository.
 2. (Optional) Create a virtual environment. With `python -m venv venv` and activate it with `venv/Scripts/activate`.
 3. Install the requirements.
 `pip install -r requirements.txt`
-4. Don't forget to install pytorch gpu version (with `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`)
+4. Install additional dependencies as mentioned above
 
 # Usage
 
 We provide three ways to use the face swapping functionality.
 1. [Direct module import and inference](#Inference-from-script) 
 2. [By deploying and calling the web service](#Web Service)
-3. As part of the socaity module.  # coming soon
+3. As part of the [socaity SDK](https://github.com/SocAIty/socaity).  # coming soon
 
 
 ## Inference from script
@@ -63,7 +77,7 @@ swapped_img = f2f.swap_one(cv2.imread("src.jpg"), cv2.imread("target.jpg"))
 
 ### Face swapping with saved reference faces
 
-Create an face embedding with the add_reference_face function and later swap faces with the swap_from_reference_face function.
+Create a face embedding with the add_reference_face function and later swap faces with the swap_from_reference_face function.
 
 If argument save=true is set, the face embedding is persisted and the f2f.swap_from_reference_face function can be used later with the same face_name, even after restarting the project.
 ```python
@@ -71,7 +85,7 @@ embedding = f2f.add_reference_face("hagrid", source_img, save=True)
 swapped = f2f.swap_from_reference_face("hagrid", target_img)
 ```
 
-### Swap the faces in an video
+### Swap the faces in a video
 Swap faces in a video. The video is read frame by frame and the faces are swapped.
 ```python
 swapped_video = f2f.swap_video(face_name="hagrid", target_video="my_video.mp4")
@@ -148,7 +162,7 @@ response = requests.post(
 ```
 In this example it is assumed that previously a face embedding with name "myface" was created with the add_reference_face endpoint.
 
-### Swap the face in an entire video
+### Swap faces in an entire video
 
 ```python
 import httpx
@@ -178,13 +192,11 @@ or the [socaity SDK](https://github.com/SocAIty/socaity).
 
 ## Disclaimer
 
-I'm not responsible of any misuse of the repository. Face swapping is a powerful technology that can be used for good and bad.
+The author is not responsible of any misuse of the repository. Face swapping is a powerful technology that can be used for good and bad purposes.
 Please use it responsibly and do not harm others. Do not publish any images without the consent of the people in the images.
 The credits for face swapping technology go to the great Insightface Team thank you [insightface.ai](https://insightface.ai/). 
-This projects uses their pretrained models and code. Special thanks goes to their work around [ROOP](https://github.com/s0md3v/sd-webui-roop).
-Some parts of the code stem from the ROOP repository.
-
-I do not claim any authorship for this repository. My contribution was simply wrapping the code into a REST Api.
+This project uses their pretrained models and parts of their code. Special thanks goes to their work around [ROOP](https://github.com/s0md3v/sd-webui-roop).
+The author does not claim authorship for this repository. The authors contribution was to provide a convenient API and service around the face swapping.
 
 
 # Contribute
@@ -193,5 +205,5 @@ Any help with maintaining and extending the package is welcome. Feel free to ope
 
 ToDo: 
 [x] make inference faster by implementing batching.
-[x] create real streaming
+[x] create real streaming in the webserb
 [x] improve streaming speed  
