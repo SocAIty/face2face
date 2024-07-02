@@ -1,6 +1,7 @@
 # Ignore output folder and models folder
 output/
 models/
+face2face/face_embeddings
 
 # Ignore virtual environment folder
 venv/
