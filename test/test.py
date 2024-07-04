@@ -16,11 +16,11 @@ f2f = Face2Face()
 #swapped = f2f.swap_from_reference_face("hagrid", target_img)
 
 # test video face swap
-#source_img = cv2.imread("test_imgs/test_face_3.jpg")
-#f2f.add_reference_face("black_woman", source_img, save=True)
-vf = VideoFile().from_file("test_imgs/test_vid_1.mp4")
-swapped = f2f.swap_video(face_name="hagrid", target_video=vf)
-swapped.save("test_imgs/swapped_vid_1.mp4")
+#source_img = cv2.imread("test_imgs/test_face_4.jpg")
+#f2f.add_reference_face("caprio", source_img, save=True)
+vf = VideoFile().from_file("test_imgs/test_video_2_swapped.mp4")
+swapped = f2f.swap_video(face_name="caprio", target_video=vf)
+swapped.save("test_imgs/test_video_2_swapped_swapped.mp4")
 
 # debug point
 a = 1

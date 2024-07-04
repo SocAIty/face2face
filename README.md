@@ -1,5 +1,10 @@
-# Face2Face
+  <h1 align="center" style="margin-top:-25px">Face2Face</h1>
 
+<p align="center">
+  <img align="center" src="docs/f2f_icon.png" height="200" />
+</p>
+  <h3 align="center" style="margin-top:-10px">Instantly swap faces in images and videos</h3>
+<br/>
 Face2Face is a generative AI technology to swap faces (aka Deep Fake) in images from one to another. 
 For example, you can swap your face with Mona Lisa or your favorite celebrity.
 
@@ -11,9 +16,10 @@ With this repository you can:
 - Run face swapping as a service.
 
 All of this is wrapped into a convenient web (openAPI) API with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
-The endpoint allows you to easily deploy face swapping as a service, but also for example to create
+The endpoint allows you to easily deploy face swapping as a service.
 The face swapping model itself was created by [Insightface](https://github.com/deepinsight/insightface)
 This is a one shot model; for this reason only one face is needed to swap. It should work for all kinds of content, also for anime.
+The model is fa
 
 
 ## Example swaps
@@ -81,14 +87,14 @@ Create a face embedding with the add_reference_face function and later swap face
 
 If argument save=true is set, the face embedding is persisted and the f2f.swap_from_reference_face function can be used later with the same face_name, even after restarting the project.
 ```python
-embedding = f2f.add_reference_face("hagrid", source_img, save=True)
-swapped = f2f.swap_from_reference_face("hagrid", target_img)
+embedding = f2f.add_reference_face("my_embedding", source_img, save=True)
+swapped = f2f.swap_from_reference_face("my_embedding", target_img)
 ```
 
 ### Swap the faces in a video
 Swap faces in a video. The video is read frame by frame and the faces are swapped.
 ```python
-swapped_video = f2f.swap_video(face_name="hagrid", target_video="my_video.mp4")
+swapped_video = f2f.swap_video(face_name="my_embedding", target_video="my_video.mp4")
 ```
 To use this function you need to install ```socaity-face2face[service]``` or the media_toolkit package.
 
@@ -99,7 +105,7 @@ def my_image_generator():
     for i in range(100):
         yield cv2.imread(f"image_{i}.jpg")
 
-for swapped_img in f2f.swap_generator(face_name="hagrid", target_img_generator=my_image_generator()):
+for swapped_img in f2f.swap_generator(face_name="my_embedding", target_img_generator=my_image_generator()):
     cv2.imshow("swapped", swapped_img)
     cv2.waitKey(1)
 ```
@@ -204,6 +210,9 @@ The author does not claim authorship for this repository. The authors contributi
 Any help with maintaining and extending the package is welcome. Feel free to open an issue or a pull request.
 
 ToDo: 
-[x] make inference faster by implementing batching.
-[x] create real streaming in the webserb
-[x] improve streaming speed  
+- make inference faster by implementing batching.
+- Implement strength factor for applied face
+- use a face enhancer gan to improve the quality of the swapped faces.
+- create real streaming in the webserver
+- improve streaming speed  
+- implement video2video with auto face recognition
