@@ -190,12 +190,14 @@ class Face2Face:
         :param face_name: the name of the reference face
         :param target_generator: a generator that yields images in BGR format (read with cv2).
             Or a video_stream that yields (image, audio) like in media_toolkit.
-        :return: a generator that yields the swapped images or a tuple (image, audio)
+        :return: a generator that yields the swapped images or tuples (image, audio)
         """
         face_name = encode_path_safe(face_name)
         source_faces = self.load_reference_embedding(face_name)
 
         for i, target_image in enumerate(target_generator):
+            yield target_image
+            continue
             # check if generator yields tuples (video, audio) or only images
             audio = None
             if isinstance(target_image, tuple) and len(target_image) == 2:
@@ -206,12 +208,14 @@ class Face2Face:
                 swapped = self._swap_detected_faces(source_faces, target_faces, target_image)
                 if audio is not None:
                     yield swapped, audio
+                    continue
 
                 yield swapped
             except Exception as e:
                 print(f"Error in swapping frame {i} to {face_name}: {e}. Skipping image")
                 if audio is not None:
                     yield target_image, audio
+                    continue
 
                 yield np.array(target_image)
 
@@ -233,7 +237,7 @@ class Face2Face:
         if not isinstance(target_video, VideoFile):
             raise ValueError("target_video must be a path or a VideoFile object")
 
-        gen = target_video.to_video_stream() if include_audio else target_video.to_image_stream()
+        gen = target_video.to_video_stream(include_audio=include_audio)
 
         new_video = VideoFile().from_video_stream(
             video_audio_stream=self.swap_generator(face_name, gen),

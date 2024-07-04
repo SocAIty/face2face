@@ -1,6 +1,7 @@
 import argparse
 import fastapi
 
+from media_toolkit.core.video.video_utils import SimpleGeneratorWrapper
 from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile
 
 import numpy as np
@@ -40,20 +41,41 @@ def swap_from_reference_face(face_name: str, target_img: ImageFile = None):
 
 @app.task_endpoint("/swap_video", queue_size=1)
 def swap_video(job_progress: JobProgress, face_name: str, target_video: VideoFile, include_audio: bool = True):
-    # generator reads the video stream and swaps the faces frame by frame
+
     def video_stream_gen():
+        # generator reads the video stream and swaps the faces frame by frame
+        gen = target_video.to_video_stream(include_audio=include_audio)
         # Swap the images one by one
-        for i, (swapped_img, audio) in enumerate(f2f.swap_generator(face_name, target_video)):
+        for i, swapped_audio_tuple in enumerate(f2f.swap_generator(face_name, gen)):
+            audio = None
+            if include_audio and len(swapped_audio_tuple) == 2:
+                swapped_img, audio = swapped_audio_tuple
+            else:
+                swapped_img = swapped_audio_tuple
+
             # update progress. Swapping is 90% of the work
-            percent_converted = float(i / target_video.frame_count)
-            percent_total = round(percent_converted * 0.9, 2)
+            if target_video.frame_count:
+                percent_converted = float(i / target_video.frame_count)
+                percent_total = round(percent_converted * 0.9, 2)
+                if percent_total > 0.9: # this is case if the estimation of cv2 is smaller than the actual video size
+                    percent_total = 0.9
+
+            else:
+                percent_total = 0.5  # arbitrary number
             job_progress.set_status(message=f"swapping frame {i}", progress=percent_total)
+
             # Yield the image
-            yield swapped_img, audio
+            if include_audio and audio is not None:
+                yield swapped_img, audio
+            else:
+                yield swapped_img
+
+    # allow tqdm to show better progress bar
+    streamer = SimpleGeneratorWrapper(video_stream_gen(), length=target_video.frame_count)
 
     # Create video
     output_video = VideoFile().from_video_stream(
-        video_audio_stream=video_stream_gen(),
+        video_audio_stream=streamer,
         frame_rate=target_video.frame_rate,
         audio_sample_rate=target_video.audio_sample_rate
     )

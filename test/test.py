@@ -18,9 +18,9 @@ f2f = Face2Face()
 # test video face swap
 #source_img = cv2.imread("test_imgs/test_face_4.jpg")
 #f2f.add_reference_face("caprio", source_img, save=True)
-vf = VideoFile().from_file("test_imgs/test_video_2_swapped.mp4")
+vf = VideoFile().from_file("test_imgs/smithy.mp4")
 swapped = f2f.swap_video(face_name="caprio", target_video=vf)
-swapped.save("test_imgs/test_video_2_swapped_swapped.mp4")
+swapped.save("test_imgs/test_video_2_swapped_swapped_smithy.mp4")
 
 # debug point
 a = 1
