@@ -31,7 +31,7 @@ The model is fa
 
 
 https://github.com/SocAIty/face2face/assets/7961324/f3990fa6-a7b0-463c-a81a-486f658b3c4f
-
+Watch the [hq video](https://www.youtube.com/watch?v=dE-d8DIndco) on youtube
 
 # Setup
 
