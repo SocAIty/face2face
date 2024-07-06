@@ -196,8 +196,6 @@ class Face2Face:
         source_faces = self.load_reference_embedding(face_name)
 
         for i, target_image in enumerate(target_generator):
-            yield target_image
-            continue
             # check if generator yields tuples (video, audio) or only images
             audio = None
             if isinstance(target_image, tuple) and len(target_image) == 2:
