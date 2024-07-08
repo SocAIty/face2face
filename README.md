@@ -114,7 +114,7 @@ for swapped_img in f2f.swap_generator(face_name="my_embedding", target_img_gener
 ## Web Service
 
 1. Start the server by running the provided .bat file "start_server.bat" 
-   2. or by using `python face_swapper_REST/server.py --port 8020` make sure the python PYTHONPATH is set to the root of this repository.
+   2. or by using `python face2face/server.py --port 8020` make sure the python PYTHONPATH is set to the root of this repository.
    3. or if module was installed via pypi by running `from face2face.server import start_server` and then `start_server(port=8020)`
 2. To test the server, open `http://localhost:8020/docs` in your browser. You should see the openapi documentation.
 
