@@ -230,7 +230,5 @@ Any help with maintaining and extending the package is welcome. Feel free to ope
 ToDo: 
 - make inference faster by implementing batching.
 - Implement strength factor for applied face
-- use a face enhancer gan to improve the quality of the swapped faces.
-- create real streaming in the webserver
-- improve streaming speed  
+- streaming for the webserver
 - implement video2video with auto face recognition
