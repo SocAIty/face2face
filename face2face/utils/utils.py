@@ -3,6 +3,7 @@ import os
 import urllib
 import unicodedata
 import glob
+from face2face.model_definitions import SWAPPER_MODELS, FACE_ENHANCER_MODELS
 
 
 def encode_path_safe(filename: str, allow_unicode=False):
@@ -56,4 +57,22 @@ def download_file(download_url: str, save_path: str):
         print(f'Downloaded {download_url}')
     return save_path
 
+
+def download_model(model_name: str) -> str:
+    """
+    Download the models specified in the download urls
+    :param model_name: name of the model to download. Look into model_definitions.py for available models
+    :return: path to the downloaded model
+    """
+    # get model config
+    model_config = SWAPPER_MODELS.get(model_name, None)
+    if model_config is None:
+        model_config = FACE_ENHANCER_MODELS.get(model_name, None)
+    if model_config is None:
+        raise ValueError(f"Model {model_name} not found")
+
+    # download model
+    download_url = model_config.get('url', None)
+    save_path = model_config.get('path', None)
+    return download_file(download_url, save_path)
 

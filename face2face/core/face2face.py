@@ -11,38 +11,31 @@ import insightface
 import onnxruntime
 from insightface.app.common import Face
 
-from face2face.core.file_writable_face import FileWriteableFace
-from face2face.core.f2f_loader import get_face_analyser, load_reference_face_from_file
-from face2face.utils.utils import encode_path_safe, download_file
-from face2face.settings import MODELS_DIR, REF_FACES_DIR, MODEL_DOWNLOAD_URL
+from .file_writable_face import FileWriteableFace
+from .f2f_loader import get_face_analyser, load_reference_face_from_file
+from face2face.utils.utils import encode_path_safe, download_model
+from face2face.settings import MODELS_DIR, REF_FACES_DIR
 from face2face.core.face_enhance.face_enhancer import enhance_face
 
 class Face2Face:
-    def __init__(self,
-                 model_path: str = None,
-                 inswapper_model_name: str = "inswapper_128.onnx",
-                 reference_faces_folder: str = None,
-                 ):
+    def __init__(self, reference_faces_folder: str = None):
         """
-        :param model_path: the folder where inswapper model and the buffalo_l model is stored.
+        :param model_path: the folder where the models are stored and downloaded to.
+            results in structure like models/insightface/inswapper_128.onnx model
+            and models/face_enhancer/gfpgan_1.4.onnx
         :param inswapper_model_name:
         """
-
-        # prepare models
-        if model_path is None:
-            model_path = os.path.join(MODELS_DIR, 'insightface')
-
-        # download models if not existing
-        model_file_path = os.path.join(model_path, inswapper_model_name)
-        if not os.path.isfile(model_file_path):
-            download_file(MODEL_DOWNLOAD_URL, model_file_path)
-
         if reference_faces_folder is None:
             reference_faces_folder = REF_FACES_DIR
 
+        # download inswapper model (roop) if not existing
+        swapper_model_file_path = download_model("inswapper_128")
+        face_analyzer_models_path = os.path.join(MODELS_DIR, 'insightface')
+
         self.providers = onnxruntime.get_available_providers()
-        self._face_analyser = get_face_analyser(model_path, self.providers)
-        self._face_swapper = insightface.model_zoo.get_model(model_file_path)
+
+        self._face_analyser = get_face_analyser(face_analyzer_models_path, self.providers)
+        self._face_swapper = insightface.model_zoo.get_model(swapper_model_file_path)
 
         # face swapper has the option to swap from image to image or
         # to have a reference images with reference faces and apply them to an image
@@ -82,6 +75,10 @@ class Face2Face:
             print(f"No face found in image. Return image as is")
             return target_image
 
+        # make sure face enhance model is downloaded
+        if enhance_faces:
+            download_model(enhance_face_model)
+
         result = copy.deepcopy(target_image)
 
         # iter through all target faces and swap them with the source faces
@@ -95,9 +92,12 @@ class Face2Face:
                 paste_back=True,
             )
             if enhance_faces:
-                result = enhance_face(
-                    target_face=target_faces[target_index], temp_vision_frame=result, model=enhance_face_model
-                )
+                try:
+                    result = enhance_face(
+                        target_face=target_faces[target_index], temp_vision_frame=result, model=enhance_face_model
+                    )
+                except Exception as e:
+                    print(f"Error in enhancing face {target_index}: {e}. Returning lowres swap instead.")
 
         return result
 

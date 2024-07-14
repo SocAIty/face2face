@@ -14,12 +14,13 @@ With this repository you can:
 - Swap faces in an entire video.
 - Create face embeddings. With these embeddings you can later swap faces without running the whole stack again.
 - Run face swapping as a service.
+- Enhance image quality of a portrait with a face enhancer model.
 
 All of this is wrapped into a convenient web (openAPI) API with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
 The endpoint allows you to easily deploy face swapping as a service.
 The face swapping model itself was created by [Insightface](https://github.com/deepinsight/insightface)
 This is a one shot model; for this reason only one face is needed to swap. It should work for all kinds of content, also for anime.
-The model is fa
+
 
 
 ## Example swaps
@@ -110,6 +111,19 @@ for swapped_img in f2f.swap_generator(face_name="my_embedding", target_img_gener
     cv2.imshow("swapped", swapped_img)
     cv2.waitKey(1)
 ```
+
+### Face enhancing
+
+The roop (inswapper) model operates on low resolution - what can harm the result face quality. 
+However, there exist AI models, which can enhance the face quality by upscaling the image.
+We provide different models for face enhancement: [gfpgan_1.4](https://github.com/TencentARC/GFPGAN), 
+and the [gpen](https://github.com/yangxy/GPEN) family.
+Check model_definitions.py for the available models.
+You can upscale up to 2048 with the GPEN model --> higher quality + higher runtime.
+```python
+swapped_img = f2f.swap_one(src_img, target_img, enhance_faces = True, enhance_face_model='gpen_bfr_512' )
+```
+The corresponding model is automatically downloaded and used when enhance_faces is set to True.
 
 ## Web Service
 
@@ -205,7 +219,8 @@ The credits for face swapping technology go to the great Insightface Team thank 
 This project uses their pretrained models and parts of their code. Special thanks goes to their work around [ROOP](https://github.com/s0md3v/sd-webui-roop).
 The author does not claim authorship for this repository. The authors contribution was to provide a convenient API and service around the face swapping.
 A big thank you also goes to all contributors of face enhancement methods in [facefusion](https://github.com/facefusion/facefusion/tree/master) 
-which inspired the face enhancement implementation in this project.
+which inspired the face enhancement implementation in this project. 
+
 
 
 # Contribute

@@ -8,8 +8,8 @@ f2f = Face2Face()
 source_img = cv2.imread("test_imgs/test_face_1.jpg")
 target_img = cv2.imread("test_imgs/test_face_2.jpg")
 #
-swapped = f2f.swap_one_image(source_img, target_img, enhance_faces=True, enhance_face_model='gpen_bfr_256')
-cv2.imwrite("swapped_face.png", swapped)
+swapped = f2f.swap_one_image(source_img, target_img, enhance_faces=True, enhance_face_model='gpen_bfr_1024')
+cv2.imwrite("swapped_face_gfpgan.png", swapped)
 #
 ## test embedding face swap
 #f2f.add_reference_face("hagrid", source_img, save=True)
