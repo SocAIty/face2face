@@ -197,13 +197,15 @@ swapped = cv2.imread(BytesIO(response.json()['result']))
 If you want it more convenient use [fastSDK](https://github.com/SocAIty/fastSDK) to built your client,
 or the [socaity SDK](https://github.com/SocAIty/socaity).
 
-## Disclaimer
+# Disclaimer
 
-The author is not responsible of any misuse of the repository. Face swapping is a powerful technology that can be used for good and bad purposes.
+The author is not responsible for any misuse of the repository. Face swapping is a powerful technology that can be used for good and bad purposes.
 Please use it responsibly and do not harm others. Do not publish any images without the consent of the people in the images.
 The credits for face swapping technology go to the great Insightface Team thank you [insightface.ai](https://insightface.ai/). 
 This project uses their pretrained models and parts of their code. Special thanks goes to their work around [ROOP](https://github.com/s0md3v/sd-webui-roop).
 The author does not claim authorship for this repository. The authors contribution was to provide a convenient API and service around the face swapping.
+A big thank you also goes to all contributors of face enhancement methods in [facefusion](https://github.com/facefusion/facefusion/tree/master) 
+which inspired the face enhancement implementation in this project.
 
 
 # Contribute

@@ -8,3 +8,9 @@ MODEL_DOWNLOAD_URL = "https://github.com/facefusion/facefusion-assets/releases/d
 
 PORT = 8020
 PROVIDER = os.getenv("PROVIDER", "fastapi")
+
+
+# ONNX Runtime Settings.
+# Important in case of openvino or when using multiple gpus
+DEVICE_ID = os.getenv("DEVICE_ID", "0")
+EXECUTION_PROVIDER = os.getenv("EXECUTION_PROVIDERS", "CUDAExecutionProvider")

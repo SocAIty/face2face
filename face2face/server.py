@@ -1,13 +1,13 @@
 import argparse
 import fastapi
 
-from media_toolkit.core.video.video_utils import SimpleGeneratorWrapper
 from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile
 
 import numpy as np
 
 from face2face.settings import PORT, PROVIDER
 from face2face.core.face2face import Face2Face
+from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
 
 f2f = Face2Face()
 app = FastTaskAPI(

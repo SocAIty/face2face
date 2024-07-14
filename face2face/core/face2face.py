@@ -15,8 +15,7 @@ from face2face.core.file_writable_face import FileWriteableFace
 from face2face.core.f2f_loader import get_face_analyser, load_reference_face_from_file
 from face2face.utils.utils import encode_path_safe, download_file
 from face2face.settings import MODELS_DIR, REF_FACES_DIR, MODEL_DOWNLOAD_URL
-
-
+from face2face.core.face_enhance.face_enhancer import enhance_face
 
 class Face2Face:
     def __init__(self,
@@ -61,12 +60,20 @@ class Face2Face:
         except IndexError:
             return None
 
-    def _swap_detected_faces(self, source_faces, target_faces, target_image: np.array) -> np.array:
+    def _swap_detected_faces(
+            self,
+            source_faces: list,
+            target_faces: list,
+            target_image: np.array,
+            enhance_faces: bool = True,
+            enhance_face_model: str = 'gfpgan_1.4'
+    ) -> np.array:
         """
         Changes the face(s) of the target image to the face(s) of the source image.
         if there are more target faces than source faces, the source face index is reset
         source_faces: the source faces
         target_image: the target image in BGR format (read with cv2)
+        enhance_faces: if True, the faces will be enhanced with a face enhancer model.
         """
         if source_faces is None or len(source_faces) == 0:
             raise Exception("No source faces found!")
@@ -87,11 +94,19 @@ class Face2Face:
                 source_faces[source_index],
                 paste_back=True,
             )
+            if enhance_faces:
+                result = enhance_face(
+                    target_face=target_faces[target_index], temp_vision_frame=result, model=enhance_face_model
+                )
 
         return result
 
     def swap_one_image(
-        self, source_image: np.array, target_image: np.array
+        self,
+        source_image: np.array,
+        target_image: np.array,
+        enhance_faces: bool = True,
+        enhance_face_model: str = 'gfpgan_1.4'
     ) -> np.array:
         """
         Changes the face(s) of the target image to the face(s) of the source image.
@@ -106,7 +121,7 @@ class Face2Face:
             raise Exception("No source faces found!")
 
         target_faces = self.get_many_faces(target_image)
-        return self._swap_detected_faces(source_faces, target_faces, target_image)
+        return self._swap_detected_faces(source_faces, target_faces, target_image, enhance_faces, enhance_face_model)
 
     def load_reference_embedding(self, face_name: str) -> Union[List[Face], None]:
         """
