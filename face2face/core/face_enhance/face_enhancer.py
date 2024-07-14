@@ -43,9 +43,9 @@ def estimate_matrix_by_face_landmark_5(
         crop_size: Size
 ) -> np.array:
     normed_warp_template = WARP_TEMPLATES.get(warp_template) * crop_size
-    affine_matrix = \
-        cv2.estimateAffinePartial2D(face_landmark_5, normed_warp_template, method=cv2.RANSAC,
-                                    ransacReprojThreshold=100)[0]
+    affine_matrix = cv2.estimateAffinePartial2D(
+            face_landmark_5, normed_warp_template, method=cv2.RANSAC, ransacReprojThreshold=100
+    )[0]
     return affine_matrix
 
 
@@ -139,15 +139,17 @@ def enhance_face(
     model_size = get_model_config(model).get('size')
     model_path = get_model_config(model).get('path')
 
+    landmark = target_face.get("kps") # get('landmark_2d_106')
+
     crop_vision_frame, affine_matrix = warp_face_by_face_landmark_5(
         temp_vision_frame,
-        target_face.landmarks.get('5/68'),
+        landmark,
         model_template,
         model_size
     )
     box_mask = create_static_box_mask(
         crop_vision_frame.shape[:2][::-1],
-        face_mask_blur=(0, 0, 0, 0),  # facefusion.globals.face_mask_blur,
+        face_mask_blur=0.0,#(0, 0, 0, 0),  # facefusion.globals.face_mask_blur,
         face_mask_padding=(0, 0, 0, 0)
     )
     crop_mask_list = [box_mask]

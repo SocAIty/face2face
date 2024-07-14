@@ -66,7 +66,7 @@ class Face2Face:
             target_faces: list,
             target_image: np.array,
             enhance_faces: bool = True,
-            enhance_face_model: str = 'gfpgan_1.4'
+            enhance_face_model: str = 'gpen_bfr_512'
     ) -> np.array:
         """
         Changes the face(s) of the target image to the face(s) of the source image.
@@ -106,7 +106,7 @@ class Face2Face:
         source_image: np.array,
         target_image: np.array,
         enhance_faces: bool = True,
-        enhance_face_model: str = 'gfpgan_1.4'
+        enhance_face_model: str = 'gpen_bfr_512'
     ) -> np.array:
         """
         Changes the face(s) of the target image to the face(s) of the source image.
