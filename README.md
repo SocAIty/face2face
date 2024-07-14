@@ -16,18 +16,17 @@ With this repository you can:
 - Run face swapping as a service.
 - Enhance image quality of a portrait with a face enhancer model.
 
-All of this is wrapped into a convenient web (openAPI) API with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
-The endpoint allows you to easily deploy face swapping as a service.
-The face swapping model itself was created by [Insightface](https://github.com/deepinsight/insightface)
 This is a one shot model; for this reason only one face is needed to swap. It should work for all kinds of content, also for anime.
+The face swapping model itself was created by [Insightface](https://github.com/deepinsight/insightface)
 
-
+We provide the face swapping functionality as SDK and as a convenient web (openAPI) API with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
+The endpoint allows you to easily deploy face swapping as a service.
 
 ## Example swaps
 
 <table>
-<td width="55%"><img src="docs/juntos.jpg"/></td>
-<td><img src="docs/pig.jpg" /></td>
+<td><img src="docs/juntos.jpg"/></td>
+<td><img src="docs/juntos_2.jpg" /></td>
 </table>
 
 

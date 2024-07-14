@@ -24,8 +24,8 @@ app = FastTaskAPI(
 )
 
 @app.task_endpoint("/swap_one", queue_size=100)
-def swap_one(source_img: ImageFile, target_img: ImageFile):
-    swapped_img = f2f.swap_one_image(np.array(source_img), np.array(target_img))
+def swap_one(source_img: ImageFile, target_img: ImageFile, enhance_face_model: str = 'gpen_bfr_512'):
+    swapped_img = f2f.swap_one_image(np.array(source_img), np.array(target_img), enhance_face_model=enhance_face_model)
     return ImageFile(file_name="swapped_img.png").from_np_array(swapped_img)
 
 @app.task_endpoint("/add_reference_face", queue_size=100)
@@ -34,19 +34,23 @@ def add_reference_face(face_name: str, source_img: ImageFile = None, save: bool 
     return MediaFile(file_name=f"{face_name}.npz").from_bytesio(face_embedding)
 
 @app.task_endpoint("/swap_from_reference_face", queue_size=100)
-def swap_from_reference_face(face_name: str, target_img: ImageFile = None):
-    swapped_img = f2f.swap_from_reference_face(face_name, np.array(target_img))
+def swap_from_reference_face(face_name: str, target_img: ImageFile = None, enhance_face_model: str = 'gpen_bfr_512'):
+    swapped_img = f2f.swap_from_reference_face(face_name, np.array(target_img), enhance_face_model=enhance_face_model)
     return ImageFile(file_name=f"swapped_to_{face_name}.png").from_np_array(swapped_img)
 
 
 @app.task_endpoint("/swap_video", queue_size=1)
-def swap_video(job_progress: JobProgress, face_name: str, target_video: VideoFile, include_audio: bool = True):
-
+def swap_video(
+        job_progress: JobProgress,
+        face_name: str, target_video: VideoFile, include_audio: bool = True,
+        enhance_face_model: str = 'gpen_bfr_512'
+    ):
     def video_stream_gen():
         # generator reads the video stream and swaps the faces frame by frame
         gen = target_video.to_video_stream(include_audio=include_audio)
+        swap_gen = f2f.swap_generator(face_name, gen, enhance_face_model=enhance_face_model)
         # Swap the images one by one
-        for i, swapped_audio_tuple in enumerate(f2f.swap_generator(face_name, gen)):
+        for i, swapped_audio_tuple in enumerate(swap_gen):
             audio = None
             if include_audio and len(swapped_audio_tuple) == 2:
                 swapped_img, audio = swapped_audio_tuple

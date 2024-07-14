@@ -3,10 +3,8 @@ from io import BytesIO
 from typing import List, Union, Tuple
 import copy
 import os
-
-# image processing imports
 import numpy as np
-# model imports
+
 import insightface
 import onnxruntime
 from insightface.app.common import Face
@@ -58,7 +56,6 @@ class Face2Face:
             source_faces: list,
             target_faces: list,
             target_image: np.array,
-            enhance_faces: bool = True,
             enhance_face_model: str = 'gpen_bfr_512'
     ) -> np.array:
         """
@@ -66,7 +63,8 @@ class Face2Face:
         if there are more target faces than source faces, the source face index is reset
         source_faces: the source faces
         target_image: the target image in BGR format (read with cv2)
-        enhance_faces: if True, the faces will be enhanced with a face enhancer model.
+        enhance_face_model: if str, the faces will be enhanced with the given face enhancer model.
+            if none the faces will not be enhanced
         """
         if source_faces is None or len(source_faces) == 0:
             raise Exception("No source faces found!")
@@ -76,7 +74,7 @@ class Face2Face:
             return target_image
 
         # make sure face enhance model is downloaded
-        if enhance_faces:
+        if enhance_face_model is not None:
             download_model(enhance_face_model)
 
         result = copy.deepcopy(target_image)
@@ -91,7 +89,7 @@ class Face2Face:
                 source_faces[source_index],
                 paste_back=True,
             )
-            if enhance_faces:
+            if enhance_face_model is not None:
                 try:
                     result = enhance_face(
                         target_face=target_faces[target_index], temp_vision_frame=result, model=enhance_face_model
@@ -105,7 +103,6 @@ class Face2Face:
         self,
         source_image: np.array,
         target_image: np.array,
-        enhance_faces: bool = True,
         enhance_face_model: str = 'gpen_bfr_512'
     ) -> np.array:
         """
@@ -121,7 +118,7 @@ class Face2Face:
             raise Exception("No source faces found!")
 
         target_faces = self.get_many_faces(target_image)
-        return self._swap_detected_faces(source_faces, target_faces, target_image, enhance_faces, enhance_face_model)
+        return self._swap_detected_faces(source_faces, target_faces, target_image, enhance_face_model)
 
     def load_reference_embedding(self, face_name: str) -> Union[List[Face], None]:
         """
@@ -181,7 +178,10 @@ class Face2Face:
         virtual_file.seek(0)
         return face_name, virtual_file
 
-    def swap_from_reference_face(self, face_name: str, target_image: Union[np.array, list]) -> np.array:
+    def swap_from_reference_face(
+            self, face_name: str, target_image: Union[np.array, list],
+            enhance_face_model: str = 'gpen_bfr_2048'
+        ) -> np.array:
         """
         Changes the face(s) of the target image to the face of the reference image.
         :param face_name: the name of the reference face
@@ -197,9 +197,13 @@ class Face2Face:
         # swap single image
         source_faces = self.load_reference_embedding(face_name)
         target_faces = self.get_many_faces(target_image)
-        return self._swap_detected_faces(source_faces, target_faces, target_image)
+        return self._swap_detected_faces(source_faces, target_faces, target_image, enhance_face_model)
 
-    def swap_generator(self, face_name: str, target_generator):
+    def swap_generator(
+            self,
+            face_name: str, target_generator,
+            enhance_face_model: str = 'gpen_bfr_2048'
+    ):
         """
         Changes the face(s) of each image in the target_img_generator to the face of the reference image.
         :param face_name: the name of the reference face
@@ -218,7 +222,7 @@ class Face2Face:
 
             try:
                 target_faces = self.get_many_faces(target_image)
-                swapped = self._swap_detected_faces(source_faces, target_faces, target_image)
+                swapped = self._swap_detected_faces(source_faces, target_faces, target_image, enhance_face_model)
                 if audio is not None:
                     yield swapped, audio
                     continue
@@ -232,7 +236,11 @@ class Face2Face:
 
                 yield np.array(target_image)
 
-    def swap_video(self, face_name: str, target_video, include_audio: bool = True):
+    def swap_video(self,
+                   face_name: str, target_video,
+                   include_audio: bool = True,
+                   enhance_face_model: str = 'gpen_bfr_2048'
+    ):
         """
         Swaps the face of the target video to the face of the reference image.
         :param face_name: the name of the reference face embedding
@@ -253,7 +261,7 @@ class Face2Face:
         gen = target_video.to_video_stream(include_audio=include_audio)
 
         new_video = VideoFile().from_video_stream(
-            video_audio_stream=self.swap_generator(face_name, gen),
+            video_audio_stream=self.swap_generator(face_name, gen, enhance_face_model=enhance_face_model),
             frame_rate=target_video.frame_rate,
             audio_sample_rate=target_video.audio_sample_rate
         )
