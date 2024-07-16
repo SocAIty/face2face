@@ -47,7 +47,7 @@ Depending on your use case you can install the package with or without the servi
 # face2face without service (only for inference from script)
 pip install socaity-face2face 
 # full package with service
-pip install socaity-face2face[service]
+pip install socaity-face2face[full]
 # or from GitHub for the newest version.
 pip install git+https://github.com/SocAIty/face2face
 ```
@@ -123,7 +123,7 @@ However, there exist AI models, which can enhance the face quality by upscaling 
 We provide different models for face enhancement: [gfpgan_1.4](https://github.com/TencentARC/GFPGAN), 
 and the [gpen](https://github.com/yangxy/GPEN) family.
 Check model_definitions.py for the available models.
-You can upscale up to 2048 with the GPEN model --> higher quality + higher runtime.
+You can upscale up to 2048 with the GPEN model --> higher quality + higher inference time.
 ```python
 swapped_img = f2f.swap_one(src_img, target_img, enhance_faces = True, enhance_face_model='gpen_bfr_512' )
 ```
@@ -232,6 +232,7 @@ which inspired the face enhancement implementation in this project.
 Any help with maintaining and extending the package is welcome. Feel free to open an issue or a pull request.
 
 ToDo: 
+- Use the occlusion model to improve the face swapping quality with occluded faces.
 - make inference faster by implementing batching.
 - Implement strength factor for applied face
 - streaming for the webserver

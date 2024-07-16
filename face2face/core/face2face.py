@@ -9,13 +9,14 @@ import insightface
 import onnxruntime
 from insightface.app.common import Face
 
+from .face_recognition import __FaceDetection
 from .file_writable_face import FileWriteableFace
 from .f2f_loader import get_face_analyser, load_reference_face_from_file
 from face2face.utils.utils import encode_path_safe, download_model
 from face2face.settings import MODELS_DIR, REF_FACES_DIR, DEVICE_ID
 from face2face.core.face_enhance.face_enhancer import enhance_face
 
-class Face2Face:
+class Face2Face(__FaceDetection):
     def __init__(self, reference_faces_folder: str = None):
         """
         :param model_path: the folder where the models are stored and downloaded to.

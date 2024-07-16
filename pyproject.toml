@@ -30,5 +30,5 @@ full = [
     'insightface==0.7.3',
     'onnxruntime-gpu==1.15.1',
     "fast-task-api[full]",
-    "media-tookit[VideoFile] >= 0.0.6"
+    "media-toolkit[VideoFile] >= 0.0.6"
 ]
