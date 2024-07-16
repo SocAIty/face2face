@@ -16,7 +16,7 @@ from face2face.settings import MODELS_DIR, REF_FACES_DIR, DEVICE_ID
 from face2face.core.face_enhance.face_enhancer import enhance_face
 
 class Face2Face:
-    def __init__(self, reference_faces_folder: str = None):
+    def __init__(self, reference_faces_folder: str = None, device_id: int = None):
         """
         :param model_path: the folder where the models are stored and downloaded to.
             results in structure like models/insightface/inswapper_128.onnx model
@@ -31,11 +31,14 @@ class Face2Face:
         face_analyzer_models_path = os.path.join(MODELS_DIR, 'insightface')
 
         self.providers = onnxruntime.get_available_providers()
+        # Setting GPU number
+        if device_id is None:
+            device_id = DEVICE_ID
 
         if "CUDAExecutionProvider" in self.providers:
             self.providers.remove("CUDAExecutionProvider")
-            self.providers.append(("CUDAExecutionProvider", {'device_id': 1}))
-            self.providers = [("CUDAExecutionProvider", {'device_id': 1})]
+            self.providers.append(("CUDAExecutionProvider", {'device_id': device_id}))
+            self.providers = [("CUDAExecutionProvider", {'device_id': device_id})]
 
         self._face_analyser = get_face_analyser(face_analyzer_models_path, self.providers)
         self._face_swapper = insightface.model_zoo.get_model(swapper_model_file_path, providers=self.providers)
