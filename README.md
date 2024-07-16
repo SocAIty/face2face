@@ -34,6 +34,11 @@ https://github.com/SocAIty/face2face/assets/7961324/f3990fa6-a7b0-463c-a81a-486f
 
 Watch the [hq video](https://www.youtube.com/watch?v=dE-d8DIndco) on youtube
 
+<a href="https://www.youtube.com/watch?v=7l-3UAWh8Pw" align="center">
+  <img src="docs/trump_fighting_assassins.png" height="350"/>
+</a>
+
+
 # Setup
 
 ### Install via pip

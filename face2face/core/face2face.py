@@ -12,7 +12,7 @@ from insightface.app.common import Face
 from .file_writable_face import FileWriteableFace
 from .f2f_loader import get_face_analyser, load_reference_face_from_file
 from face2face.utils.utils import encode_path_safe, download_model
-from face2face.settings import MODELS_DIR, REF_FACES_DIR
+from face2face.settings import MODELS_DIR, REF_FACES_DIR, DEVICE_ID
 from face2face.core.face_enhance.face_enhancer import enhance_face
 
 class Face2Face:
@@ -32,8 +32,13 @@ class Face2Face:
 
         self.providers = onnxruntime.get_available_providers()
 
+        if "CUDAExecutionProvider" in self.providers:
+            self.providers.remove("CUDAExecutionProvider")
+            self.providers.append(("CUDAExecutionProvider", {'device_id': 1}))
+            self.providers = [("CUDAExecutionProvider", {'device_id': 1})]
+
         self._face_analyser = get_face_analyser(face_analyzer_models_path, self.providers)
-        self._face_swapper = insightface.model_zoo.get_model(swapper_model_file_path)
+        self._face_swapper = insightface.model_zoo.get_model(swapper_model_file_path, providers=self.providers)
 
         # face swapper has the option to swap from image to image or
         # to have a reference images with reference faces and apply them to an image
@@ -180,7 +185,7 @@ class Face2Face:
 
     def swap_from_reference_face(
             self, face_name: str, target_image: Union[np.array, list],
-            enhance_face_model: str = 'gpen_bfr_2048'
+            enhance_face_model: str | None = 'gpen_bfr_2048'
         ) -> np.array:
         """
         Changes the face(s) of the target image to the face of the reference image.
