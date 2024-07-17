@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/SocAIty/fast-task-api"
+Repository = "https://github.com/SocAIty/face2face"
 
 
 [project.optional-dependencies]
