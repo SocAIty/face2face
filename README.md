@@ -78,8 +78,10 @@ First create an instance of the class.
 
 ```python
 from face2face import Face2Face
-f2f = Face2Face()
+f2f = Face2Face(device_id=0) 
 ```
+With the device_id setting you can set the GPU device id. This also allows to run face2face in multiple processes on
+different GPUs.
 
 ### Easy face swapping
 Swap faces from one image to another.
@@ -123,11 +125,12 @@ However, there exist AI models, which can enhance the face quality by upscaling 
 We provide different models for face enhancement: [gfpgan_1.4](https://github.com/TencentARC/GFPGAN), 
 and the [gpen](https://github.com/yangxy/GPEN) family.
 Check model_definitions.py for the available models.
-You can upscale up to 2048 with the GPEN model --> higher quality + higher inference time.
+You can upscale up to 2048 with the GPEN model --> higher quality + higher runtime.
 ```python
 swapped_img = f2f.swap_one(src_img, target_img, enhance_faces = True, enhance_face_model='gpen_bfr_512' )
 ```
 The corresponding model is automatically downloaded and used when enhance_faces is set to True.
+
 
 ## Web Service
 
@@ -232,7 +235,7 @@ which inspired the face enhancement implementation in this project.
 Any help with maintaining and extending the package is welcome. Feel free to open an issue or a pull request.
 
 ToDo: 
-- Use the occlusion model to improve the face swapping quality with occluded faces.
+- Setting device ID also for enhancer via face2face class instead of global settings.
 - make inference faster by implementing batching.
 - Implement strength factor for applied face
 - streaming for the webserver

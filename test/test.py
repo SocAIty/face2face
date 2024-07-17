@@ -1,14 +1,13 @@
 from face2face import Face2Face
-from media_toolkit import VideoFile
 import cv2
 
-f2f = Face2Face()
+f2f = Face2Face(device_id=1)
 
 # test single face swap
-source_img = cv2.imread("test_imgs/trump.jpg")
-target_img = cv2.imread("test_imgs/test_face_4.jpg")
+source_img = cv2.imread("test_imgs/test_face_1.jpg")
+target_img = cv2.imread("test_imgs/test_face_2.jpg")
 #
-swapped = f2f.swap_one_image(source_img, target_img, enhance_faces=True, enhance_face_model='gpen_bfr_2048')
+swapped = f2f.swap_one_image(source_img, target_img, enhance_face_model='gpen_bfr_2048')
 cv2.imwrite("swapped_trump.png", swapped)
 #
 ## test embedding face swap
