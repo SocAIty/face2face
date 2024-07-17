@@ -4,19 +4,21 @@ from typing import List, Union, Tuple
 import copy
 import os
 import numpy as np
+import cv2
 
 import insightface
 import onnxruntime
 from insightface.app.common import Face
 
-from .face_recognition import __FaceDetection
+from face2face.core.face_recognition import _FaceRecognition
 from .file_writable_face import FileWriteableFace
 from .f2f_loader import get_face_analyser, load_reference_face_from_file
-from face2face.utils.utils import encode_path_safe, download_model
+from face2face.utils.utils import encode_path_safe, download_model, load_image
 from face2face.settings import MODELS_DIR, REF_FACES_DIR, DEVICE_ID
 from face2face.core.face_enhance.face_enhancer import enhance_face
 
-class Face2Face:
+
+class Face2Face(_FaceRecognition):
     def __init__(self, reference_faces_folder: str = None, device_id: int = None):
         """
         :param model_path: the folder where the models are stored and downloaded to.
@@ -110,8 +112,8 @@ class Face2Face:
 
     def swap_one_image(
         self,
-        source_image: np.array,
-        target_image: np.array,
+        source_image: Union[np.array, str],
+        target_image: Union[np.array, str],
         enhance_face_model: str = 'gpen_bfr_512'
     ) -> np.array:
         """
@@ -119,6 +121,8 @@ class Face2Face:
         source_image: the source image in BGR format (read with cv2)
         target_image: the target image in BGR format (read with cv2)
         """
+        source_image = load_image(source_image)
+        target_image = load_image(target_image)
 
         # get the bounding box of the faces
         source_faces = self.get_many_faces(source_image)
@@ -148,11 +152,14 @@ class Face2Face:
             raise ValueError(f"Reference face {face_name} not found. "
                              f"Please add the reference face first with add_reference_face")
 
+        # convert embedding to face
+        embedding = [Face(face) for face in embedding]
+
         # add to memory dict
         self.reference_faces[face_name] = embedding
         return embedding
 
-    def add_reference_face(self, face_name: str, ref_image: np.array, save=False) -> Tuple[str, np.array]:
+    def add_reference_face(self, face_name: str, ref_image: Union[np.array, str], save=False) -> Tuple[str, np.array]:
         """
         Add a reference face to the face swapper. The face swapper will use this face to swap it to other images.
         Use the method swap_from_reference_face to swap the reference face to other images.
@@ -162,16 +169,16 @@ class Face2Face:
         :return: the savely encoded face name and the reference face
         """
         face_name = encode_path_safe(face_name)
+        ref_image = load_image(ref_image)
 
         self.reference_faces[face_name] = self.get_many_faces(ref_image)
 
-        # make classes pickle safe
-        for i, face in enumerate(self.reference_faces[face_name]):
-            self.reference_faces[face_name][i] = FileWriteableFace(face)
+        # make faces pickle able by converting them to FileWriteableFace
+        save_able_ref_faces = [FileWriteableFace(face) for face in self.reference_faces[face_name]]
 
         # save face to virtual file
         virtual_file = BytesIO()
-        np.save(virtual_file, self.reference_faces[face_name], allow_pickle=True)
+        np.save(virtual_file, arr=save_able_ref_faces, allow_pickle=True)
         virtual_file.seek(0)
         if save:
             if not os.path.isdir(REF_FACES_DIR):
@@ -188,7 +195,9 @@ class Face2Face:
         return face_name, virtual_file
 
     def swap_from_reference_face(
-            self, face_name: str, target_image: Union[np.array, list],
+            self,
+            face_name: str,
+            target_image: Union[np.array, list],
             enhance_face_model: str | None = 'gpen_bfr_2048'
         ) -> np.array:
         """
@@ -210,7 +219,8 @@ class Face2Face:
 
     def swap_generator(
             self,
-            face_name: str, target_generator,
+            face_name: str,
+            target_generator,
             enhance_face_model: str = 'gpen_bfr_2048'
     ):
         """
@@ -246,7 +256,8 @@ class Face2Face:
                 yield np.array(target_image)
 
     def swap_video(self,
-                   face_name: str, target_video,
+                   face_name: str,
+                   target_video,
                    include_audio: bool = True,
                    enhance_face_model: str = 'gpen_bfr_2048'
     ):

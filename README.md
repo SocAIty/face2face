@@ -240,3 +240,4 @@ ToDo:
 - Implement strength factor for applied face
 - streaming for the webserver
 - implement video2video with auto face recognition
+- remove insightface dependency and update onnx version
