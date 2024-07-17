@@ -41,10 +41,33 @@ class __FaceRecognition:
         :return: the swapped face
         """
         face_distances = self.calculate_ref_face_distances(detected_faces)
-        _swap_detected_faces
+
+        target_faces = []
         for face in detected_faces:
             if face_distances[face][source_face] < 0.5:
-                self.swap_one_image(face, self._reference_faces[target_face])
+                target_faces.append(face)
+            else:
+                # This makes sure, that the order of the faces is preserved
+                # In addition, these faces are not swapped
+                target_faces.append(None)
+
+    def swap_known_faces_to_target_faces(self: Face2Face, detected_faces: list, swap_pairs: dict):
+        """
+        Based on the swap_pairs, swap the source faces to the target faces if they are recognized.
+        1. Identify all persons in an image.
+
+        """
+        face_distances = self.calculate_ref_face_distances(detected_faces)
+
+        _target_faces = []
+        for face in detected_faces:
+            for source_face, target_face in swap_pairs.items():
+                if face_distances[face][source_face] < 0.5:
+                    _target_faces.append(face)
+                else:
+                    # This makes sure, that the order of the faces is preserved
+                    # In addition, these faces are not swapped
+                    _target_faces.append(None)
 
 
     @staticmethod
