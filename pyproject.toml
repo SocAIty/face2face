@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "socaity-face2face"
-version = "0.0.3"
+version = "0.0.4"
 description="Swap faces from one image to another. Create face embeddings. Integrate into hosted environments."
 requires-python = ">=3.8"
 authors = [
