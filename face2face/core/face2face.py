@@ -72,7 +72,8 @@ class Face2Face(_FaceRecognition):
         """
         Changes the face(s) of the target image to the face(s) of the source image.
         if there are more target faces than source faces, the source face index is reset
-        source_faces: the source faces
+        source_faces: the source faces from left to right [face1, None, face3, ... ]
+        target_faces: the target faces from left to right [face1, face2, face3, ... ].
         target_image: the target image in BGR format (read with cv2)
         enhance_face_model: if str, the faces will be enhanced with the given face enhancer model.
             if none the faces will not be enhanced
@@ -94,10 +95,16 @@ class Face2Face(_FaceRecognition):
         # if there are more target faces than source faces, the source face index is reset
         for target_index in range(len(target_faces)):
             source_index = target_index % len(source_faces)  # 6 % 5 = 1 and 1 % 5 = 1 ...
+
+            # having none values in the array allows users to skip faces
+            source_face = source_faces[source_index]
+            if source_face is None:
+                continue
+
             result = self._face_swapper.get(
                 result,  # in place operation
                 target_faces[target_index],
-                source_faces[source_index],
+                source_face,
                 paste_back=True,
             )
             if enhance_face_model is not None:

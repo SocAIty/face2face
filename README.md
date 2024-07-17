@@ -51,25 +51,15 @@ pip install socaity-face2face[full]
 # or from GitHub for the newest version.
 pip install git+https://github.com/SocAIty/face2face
 ```
-
 Additional dependencies:
-- For GPU acceleration also install
-pytorch gpu version (with `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`)
 - For VideoFile support in the webservice you also need to install [ffmpeg](https://ffmpeg.org/download.html)
 
-### Install and work with the GitHub repository
-1. Clone the repository.
-2. (Optional) Create a virtual environment. With `python -m venv venv` and activate it with `venv/Scripts/activate`.
-3. Install the requirements.
-`pip install -r requirements.txt`
-4. Install additional dependencies as mentioned above
 
 # Usage
 
 We provide three ways to use the face swapping functionality.
 1. [Direct module import and inference](#Inference-from-script) 
 2. [By deploying and calling the web service](#Web Service)
-3. As part of the [socaity SDK](https://github.com/SocAIty/socaity).  # coming soon
 
 
 ## Inference from script
@@ -95,9 +85,24 @@ Create a face embedding with the add_reference_face function and later swap face
 
 If argument save=true is set, the face embedding is persisted and the f2f.swap_from_reference_face function can be used later with the same face_name, even after restarting the project.
 ```python
-embedding = f2f.add_reference_face("my_embedding", source_img, save=True)
-swapped = f2f.swap_from_reference_face("my_embedding", target_img)
+embedding = f2f.add_reference_face("my_new_face", source_img, save=True)
+# Swap all faces in the target image with the face in the face embedding
+swapped = f2f.swap_from_reference_face("my_new_face", target_img)
 ```
+
+### Face swapping with face recognition (swap pairs)
+
+After an embedding was created, we can recognize / identify those persons.
+Then the identified persons can specifically be swapped with defined swap pairs.
+```python
+swapped = f2f.swap_known_faces_to_target_faces("test_imgs/test_multi_swap_from_reference.jpg", swap_pairs={
+    "trump": "hagrid",
+    "biden": "ron"
+})
+```
+This function will swap the faces of trump with hagrid and biden with ron.
+Therefore it first recognizes the faces in the target image and then swaps them with the defined swap pairs.
+
 
 ### Swap the faces in a video
 Swap faces in a video. The video is read frame by frame and the faces are swapped.
