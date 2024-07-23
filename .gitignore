@@ -3,6 +3,10 @@ output/
 models/
 face2face/face_embeddings
 
+# ignore the test_imgs folder
+test/test_imgs/
+
+
 # Ignore virtual environment folder
 venv/
 

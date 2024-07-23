@@ -1,16 +1,13 @@
-from __future__ import annotations
-
-from collections import OrderedDict
-from typing import TYPE_CHECKING, Union, List, Dict
-
-from insightface.app.common import Face
-
-from face2face.modules.utils.utils import load_image
-
 # avoid circular dependency but provide type hints
+from __future__ import annotations
+from typing import TYPE_CHECKING, Union, List, Dict
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
+# normal imports
+from collections import OrderedDict
+from insightface.app.common import Face
+from face2face.modules.utils.utils import load_image
 import numpy as np
 
 
@@ -52,7 +49,7 @@ class _FaceRecognition:
                 recognized_faces.append((closest_face, dist, face))
         return recognized_faces
 
-    def swap_faces_to_faces(
+    def swap_pairs(
             self: Face2Face,
             image: Union[np.array, str],
             swap_pairs: dict,
@@ -84,7 +81,7 @@ class _FaceRecognition:
             partner = swap_pairs[rec[0]]
             swap_embeddings.append(swap_partner_embeddings[partner])
 
-        self._swap_faces(
+        return self._swap_faces(
             source_faces=swap_embeddings,
             target_faces=[rec[2] for rec in recognized_partner_faces],
             target_image=image,

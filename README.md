@@ -10,33 +10,31 @@ For example, you can swap your face with Mona Lisa or your favorite celebrity.
 
 With this repository you can:
 
-- Swap faces from one image to another. 
-- Swap faces in an entire video.
-- Create face embeddings. With these embeddings you can later swap faces without running the whole stack again.
-- Run face swapping as a service.
-- Enhance image quality of a portrait with a face enhancer model.
+- [Swap faces from one image to another](#swap-faces-from-one-image-to-another). 
+- [Swap faces in videos](#swap-faces-in-videos).
+- [Create face embeddings](#face-swapping-with-saved-reference-faces). With these embeddings you can later swap faces without running the whole stack again.
+- Face restoration: Enhance image quality of a portrait with a face enhancer model.
+- Identify faces with face-recognition
+- [Run face swapping as a service](docs/WebService.md).
+
 
 This is a one shot model; for this reason only one face is needed to swap. It should work for all kinds of content, also for anime.
 The face swapping model itself was created by [Insightface](https://github.com/deepinsight/insightface)
 
 We provide the face swapping functionality as SDK and as a convenient web (openAPI) API with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
-The endpoint allows you to easily deploy face swapping as a service.
+The endpoint allows you to easily deploy face swapping, recognition and restoration as a service.
 
 ## Example swaps
-
-<table>
-<td><img src="docs/juntos.jpg"/></td>
-<td><img src="docs/juntos_2.jpg" /></td>
-</table>
+| Face-swap                                              | Multi-face Swap                                | Face-Swap with face-recognition                  |
+|--------------------------------------------------------|------------------------------------------------|--------------------------------------------------|
+| <img src="docs/example_face_swap.jpg" height="250px"/> | <img src="docs/juntos_2.jpg" height="250px" /> | <img src="docs/multi_swap.jpg" height="250px"/>  |
 
 
-https://github.com/SocAIty/face2face/assets/7961324/f3990fa6-a7b0-463c-a81a-486f658b3c4f
 
-Watch the [hq video](https://www.youtube.com/watch?v=dE-d8DIndco) on youtube
+| Video-swapping                                                                                         | Video-Swapping with face-recognition                                                                                  | Face-restoration                                            |
+|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------| 
+| <a href="https://www.youtube.com/watch?v=dE-d8DIndco"></a><img src="docs/caprified.png" height="250"/> | <a href="https://www.youtube.com/watch?v=dE-d8DIndco"></a><img src="docs/trump_fighting_assassins.png" height="250"/> | <img src="docs/face_restoration_gpen.PNG" height="250px"/>  
 
-<a href="https://www.youtube.com/watch?v=7l-3UAWh8Pw" align="center">
-  <img src="docs/trump_fighting_assassins.png" height="350"/>
-</a>
 
 
 # Setup
@@ -50,14 +48,20 @@ pip install socaity-face2face
 pip install socaity-face2face[full]
 ```
 Additional dependencies:
-- For VideoFile support in the webservice you also need to install [ffmpeg](https://ffmpeg.org/download.html)
+- For VideoFile support in the webservice you also need to install [ffmpeg](https://ffmpeg.org/download.html) 
 
+Requirements:
+- Python 3.7 or higher
+- Minimum 5GB of RAM (you'll get a "Killed" message without further information if you run out of memory)
+- Recommended: GPU with at least 8GB of VRAM for fast-inference. Runs also on CPU though.
+
+Note: Models are downloaded automatically
 
 # Usage
 
-We provide three ways to use the face swapping functionality.
+We provide two ways to use the face swapping functionality.
 1. [Direct module import and inference](#Inference-from-script) 
-2. [By deploying and calling the web service](#Web Service)
+2. [By deploying and calling the web service](#docs/WebService.md)
 
 
 ## Inference from script
@@ -71,12 +75,10 @@ f2f = Face2Face(device_id=0)
 With the device_id setting you can set the GPU device id. This also allows to run face2face in multiple processes on
 different GPUs.
 
-### Easy face swapping
-Swap faces from one image to another.
+### Swap faces from one image to another
 ```python
-swapped_img = f2f.swap_one(cv2.imread("src.jpg"), cv2.imread("target.jpg"))
+swapped_img = f2f.swap_one("path/to/src.jpg", "path/to/target.jpg")
 ```
-
 ### Face swapping with saved reference faces
 
 Create a face embedding with the add_reference_face function and later swap faces with the swap_from_reference_face function.
@@ -85,8 +87,8 @@ If argument save=true is set, the face embedding is persisted and the f2f.swap_f
 
 ```python
 embedding = f2f.add_face("my_new_face", source_img, save=True)
-# Swap all faces in the target image with the face in the face embedding
-swapped = f2f.swap_from_reference_face("my_new_face", target_img)
+# Swap all faces in the target image with the face(s) in the face embedding
+swapped = f2f.swap_to_face("my_new_face", target_img)
 ```
 
 ### Face swapping with face recognition (swap pairs)
@@ -95,7 +97,7 @@ After an embedding was created, we can recognize / identify those persons.
 Then the identified persons can specifically be swapped with defined swap pairs.
 
 ```python
-swapped = f2f.swap_faces_to_faces("test_imgs/test_multi_swap_from_reference.jpg", swap_pairs={
+swapped = f2f.swap_pairs("test_imgs/test_multi_swap_from_reference.jpg", swap_pairs={
    "trump": "hagrid",
    "biden": "ron"
 })
@@ -104,13 +106,17 @@ This function will swap the faces of trump with hagrid and biden with ron.
 Therefore it first recognizes the faces in the target image and then swaps them with the defined swap pairs.
 
 
-### Swap the faces in a video
+### Swap faces in videos
 Swap faces in a video. The video is read frame by frame and the faces are swapped.
 
 ```python
+# to swap all faces in the video with the face in the embedding
 swapped_video = f2f.swap_to_face_in_video(face_name="my_embedding", target_video="my_video.mp4")
+# with face recognition
+swapped_video = f2f.swap_pairs_in_video(target_video="my_video.mp4", swap_pairs={"trump": "hagrid"})
 ```
-To use this function you need to install ```socaity-face2face[service]``` or the media_toolkit package.
+To use this function you need to install ```socaity-face2face[service]``` or the [media_toolkit](https://github.com/SocAIty/media-toolkit) package.
+
 
 ### Face swapping with a generator
 Iteratively swapping from a list of images
@@ -121,9 +127,16 @@ def my_image_generator():
       yield cv2.imread(f"image_{i}.jpg")
 
 
+# for swapping to always the same face
 for swapped_img in f2f.swap_to_face_generator(face_name="my_embedding", target_img_generator=my_image_generator()):
    cv2.imshow("swapped", swapped_img)
    cv2.waitKey(1)
+
+# including face recognition
+for swapped_img in f2f.swap_pairs_generator(target_img_generator=my_image_generator(), swap_pairs={"trump": "hagrid"}):
+   cv2.imshow("swapped", swapped_img)
+   cv2.waitKey(1)
+
 ```
 
 ### Face enhancing
@@ -140,91 +153,6 @@ swapped_img = f2f.swap_one(src_img, target_img, enhance_faces = True, enhance_fa
 The corresponding model is automatically downloaded and used when enhance_faces is set to True.
 
 
-## Web Service
-
-1. Start the server by running the provided .bat file "start_server.bat" 
-   2. or by using `python face2face/server.py --port 8020` make sure the python PYTHONPATH is set to the root of this repository.
-   3. or if module was installed via pypi by running `from face2face.server import start_server` and then `start_server(port=8020)`
-2. To test the server, open `http://localhost:8020/docs` in your browser. You should see the openapi documentation.
-
-![image of openapi server](docs/example_server.png)
-
-Note: The first time you start the server, it will download the models. This can take a while.
-If this fails, you can download the files manually and store them in models/ or models/insightface/inswapper_128.onnx
-
-The Webservice is built with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI). 
-In this regard, for each request it will create a task and return a job id
-
-### Face2Face (aka swapping) 
-
-
-```python
-import requests
-
-# load images from disc
-with open("src.jpg", "rb") as image:
-    src_img = image.read()
-with open("target.jpg", "rb") as image:
-    target_img = image.read()
-
-# send post request
-job = requests.post("http://localhost:8020/api/swap_one", files={"source_img": src_img, "target_img": target_img})
-```
-
-### For face embedding generation
-
-```python
-import requests
-
-with open("src.jpg", "rb") as image:
-    src_img = image.read()
-
-response = requests.post("http://localhost:8020/api/add_reference_face", params={ "face_name": "myface", "save": True}, files={"source_img": src_img})
-```
-The response is a .npz file as bytes. 
-After the embedding was created it can be used in the next swapping with the given face_name.
-
-### For face swapping with saved reference faces
-
-```python
-import requests
-with open("target.jpg", "rb") as image:
-    target_img = image.read()
-
-response = requests.post(
-   "http://localhost:8020/api/swap_from_reference_face", 
-    params={ "face_name" : "myface"}, files={"target_img": target_img}
-)
-```
-In this example it is assumed that previously a face embedding with name "myface" was created with the add_reference_face endpoint.
-
-### Swap faces in an entire video
-
-```python
-import httpx
-from media_toolkit import VideoFile
-my_video = VideoFile("my_video.mp4")
-request = httpx.post(
-   "http://localhost:8020/swap_video", params={ "face_name" : "myface"}, 
-    files={"target_video": my_video.to_httpx_send_able_tuple()}
-)
-```
-
-### Parse the results
-
-The response is a json that includes the job id and meta information.
-By sending then a request to the job endpoint you can check the status and progress of the job.
-If the job is finished, you will get the result, including the swapped image.
-```python
-import cv2
-from io import BytesIO
-# check status of job
-response = requests.get(f"http://localhost:8020/api/job/{job.json()['job_id']}")
-# convert result to image file
-swapped = cv2.imread(BytesIO(response.json()['result']))
-```
-If you want it more convenient use [fastSDK](https://github.com/SocAIty/fastSDK) to built your client,
-or the [socaity SDK](https://github.com/SocAIty/socaity).
 
 # Disclaimer
 
@@ -242,10 +170,10 @@ which inspired the face enhancement implementation in this project.
 
 Any help with maintaining and extending the package is welcome. Feel free to open an issue or a pull request.
 
-ToDo: 
-- Setting device ID also for enhancer via face2face class instead of global settings.
-- make inference faster by implementing batching.
+ToDo:
+- Improve inference times
+  - by implementing batching.
+  - by using multi-threading in image_generators
 - Implement strength factor for applied face
-- streaming for the webserver
-- implement video2video with auto face recognition
 - remove insightface dependency and update onnx version
+- streaming for the webserver

@@ -200,7 +200,7 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
 
                 yield np.array(target_image)
 
-    def swap_faces_to_faces_generator(
+    def swap_pairs_generator(
             self,
             swap_pairs: dict,
             image_generator,
@@ -220,7 +220,7 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
                 target_image, audio = target_image
 
             try:
-                swapped = self.swap_faces_to_faces(swap_pairs, target_image, enhance_face_model)
+                swapped = self.swap_pairs(swap_pairs, target_image, enhance_face_model)
 
                 if audio is not None:
                     yield swapped, audio

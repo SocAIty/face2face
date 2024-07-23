@@ -1,8 +1,13 @@
 # avoid circular dependency but provide type hints
+from __future__ import annotations
+from typing import TYPE_CHECKING, Union, List, Tuple
+if TYPE_CHECKING:
+    from face2face.core.face2face import Face2Face
+
+# regular imports
 import glob
 import os
 from io import BytesIO
-from typing import TYPE_CHECKING, Union, List, Tuple
 
 import numpy as np
 from insightface.app.common import Face
@@ -12,9 +17,6 @@ from face2face.modules.storage.file_writable_face import FileWriteableFace
 from face2face.settings import REF_FACES_DIR
 from face2face.modules.utils import encode_path_safe
 from face2face.modules.utils.utils import load_image
-
-if TYPE_CHECKING:
-    from face2face.core.face2face import Face2Face
 
 
 class _FaceEmbedding:
