@@ -1,34 +1,31 @@
 # ordinary imports
-from io import BytesIO
-from typing import List, Union, Tuple
+from typing import List, Union
 import copy
 import os
 import numpy as np
-import cv2
 
 import insightface
 import onnxruntime
 from insightface.app.common import Face
 
-from face2face.core.face_recognition import _FaceRecognition
-from .file_writable_face import FileWriteableFace
-from .f2f_loader import get_face_analyser, load_reference_face_from_file
-from face2face.utils.utils import encode_path_safe, download_model, load_image
+from face2face.core.mixins._face_embedding import _FaceEmbedding
+from face2face.core.mixins._face_recognition import _FaceRecognition
+from face2face.core.mixins._video_swap import _Video_Swap
+
+from face2face.modules.storage.f2f_loader import get_face_analyser
+from face2face.modules.utils.utils import encode_path_safe, download_model, load_image
 from face2face.settings import MODELS_DIR, REF_FACES_DIR, DEVICE_ID
-from face2face.core.face_enhance.face_enhancer import enhance_face
+from face2face.modules.face_enhance.face_enhancer import enhance_face
 
 
-class Face2Face(_FaceRecognition):
-    def __init__(self, reference_faces_folder: str = None, device_id: int = None):
+class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
+    def __init__(self, face_embedding_folder: str = None, device_id: int = None):
         """
         :param model_path: the folder where the models are stored and downloaded to.
             results in structure like models/insightface/inswapper_128.onnx model
             and models/face_enhancer/gfpgan_1.4.onnx
         :param inswapper_model_name:
         """
-        if reference_faces_folder is None:
-            reference_faces_folder = REF_FACES_DIR
-
         # download inswapper model (roop) if not existing
         swapper_model_file_path = download_model("inswapper_128")
         face_analyzer_models_path = os.path.join(MODELS_DIR, 'insightface')
@@ -46,32 +43,24 @@ class Face2Face(_FaceRecognition):
         self._face_analyser = get_face_analyser(face_analyzer_models_path, self.providers)
         self._face_swapper = insightface.model_zoo.get_model(swapper_model_file_path, providers=self.providers)
 
-        # face swapper has the option to swap from image to image or
-        # to have a reference images with reference faces and apply them to an image
-        # they dict has structure {face_name: detected faces }
-        self._reference_faces_folder = reference_faces_folder
-        self.reference_faces = {}
+        # face swapper has the option to swap images from previously stored faces as embeddings
+        # they dict has structure {face_name: face_embedding }
+        if face_embedding_folder is None:
+            face_embedding_folder = REF_FACES_DIR
 
-    def get_many_faces(self, frame: np.ndarray) -> Union[List | None]:
-        """
-        get faces from left to right by order
-        """
-        try:
-            face = self._face_analyser.get(frame)
-            return sorted(face, key=lambda x: x.bbox[0])
-        except IndexError:
-            return None
+        self._face_embedding_folder = face_embedding_folder
+        self._face_embeddings = {}
 
-    def _swap_detected_faces(
+    def _swap_faces(
             self,
-            source_faces: list,
-            target_faces: list,
+            source_faces: List[Face],
+            target_faces: List[Face],
             target_image: np.array,
             enhance_face_model: str = 'gpen_bfr_512'
     ) -> np.array:
         """
         Changes the face(s) of the target image to the face(s) of the source image.
-        if there are more target faces than source faces, the source face index is reset
+        if there are more target faces than source faces, the source face index is reset and starts again left->right.
         source_faces: the source faces from left to right [face1, None, face3, ... ]
         target_faces: the target faces from left to right [face1, face2, face3, ... ].
         target_image: the target image in BGR format (read with cv2)
@@ -132,76 +121,25 @@ class Face2Face(_FaceRecognition):
         target_image = load_image(target_image)
 
         # get the bounding box of the faces
-        source_faces = self.get_many_faces(source_image)
+        source_faces = self.detect_faces(source_image)
 
         if source_faces is None:
             raise Exception("No source faces found!")
 
-        target_faces = self.get_many_faces(target_image)
-        return self._swap_detected_faces(source_faces, target_faces, target_image, enhance_face_model)
+        target_faces = self.detect_faces(target_image)
+        return self._swap_faces(source_faces, target_faces, target_image, enhance_face_model)
 
-    def load_reference_embedding(self, face_name: str) -> Union[List[Face], None]:
+    def detect_faces(self, frame: np.ndarray) -> Union[List | None]:
         """
-        Load a reference face embedding from a file.
-        :param face_name: the name of the reference face embedding
-        :return: the embedding of the reference face(s)
+        get faces from left to right by order
         """
-        # check if is already in ram. If yes return that one
-        embedding = self.reference_faces.get(face_name, None)
-        if embedding is not None:
-            return embedding
+        try:
+            face = self._face_analyser.get(frame)
+            return sorted(face, key=lambda x: x.bbox[0])
+        except IndexError:
+            return None
 
-        # load from file
-        file = os.path.join(self._reference_faces_folder, f"{face_name}.npz")
-        embedding = load_reference_face_from_file(file)
-
-        if embedding is None:
-            raise ValueError(f"Reference face {face_name} not found. "
-                             f"Please add the reference face first with add_reference_face")
-
-        # convert embedding to face
-        embedding = [Face(face) for face in embedding]
-
-        # add to memory dict
-        self.reference_faces[face_name] = embedding
-        return embedding
-
-    def add_reference_face(self, face_name: str, ref_image: Union[np.array, str], save=False) -> Tuple[str, np.array]:
-        """
-        Add a reference face to the face swapper. The face swapper will use this face to swap it to other images.
-        Use the method swap_from_reference_face to swap the reference face to other images.
-        :param face_name: how the reference face is called
-        :param ref_image: the image to get the faces from
-        :param save: if True, the reference face will be saved to the reference_faces folder and available next startup
-        :return: the savely encoded face name and the reference face
-        """
-        face_name = encode_path_safe(face_name)
-        ref_image = load_image(ref_image)
-
-        self.reference_faces[face_name] = self.get_many_faces(ref_image)
-
-        # make faces pickle able by converting them to FileWriteableFace
-        save_able_ref_faces = [FileWriteableFace(face) for face in self.reference_faces[face_name]]
-
-        # save face to virtual file
-        virtual_file = BytesIO()
-        np.save(virtual_file, arr=save_able_ref_faces, allow_pickle=True)
-        virtual_file.seek(0)
-        if save:
-            if not os.path.isdir(REF_FACES_DIR):
-                os.makedirs(REF_FACES_DIR)
-
-            filename = os.path.join(REF_FACES_DIR, f"{face_name}.npz")
-            if os.path.isfile(filename):
-                print(f"Reference face {face_name} already exists. Overwriting.")
-
-            with open(filename, "wb") as f:
-                f.write(virtual_file.getbuffer())
-
-        virtual_file.seek(0)
-        return face_name, virtual_file
-
-    def swap_from_reference_face(
+    def swap_to_face(
             self,
             face_name: str,
             target_image: Union[np.array, list],
@@ -217,38 +155,38 @@ class Face2Face(_FaceRecognition):
 
         # if target_image is a list of images, swap all images
         if isinstance(target_image, list):
-            return list(self.swap_generator(face_name, target_image))
+            return list(self.swap_to_face_generator(face_name, target_image))
 
         # swap single image
-        source_faces = self.load_reference_embedding(face_name)
-        target_faces = self.get_many_faces(target_image)
-        return self._swap_detected_faces(source_faces, target_faces, target_image, enhance_face_model)
+        source_faces = self.load_face(face_name)
+        target_faces = self.detect_faces(target_image)
+        return self._swap_faces(source_faces, target_faces, target_image, enhance_face_model)
 
-    def swap_generator(
+    def swap_to_face_generator(
             self,
             face_name: str,
-            target_generator,
+            image_generator,
             enhance_face_model: str = 'gpen_bfr_2048'
     ):
         """
         Changes the face(s) of each image in the target_img_generator to the face of the reference image.
         :param face_name: the name of the reference face
-        :param target_generator: a generator that yields images in BGR format (read with cv2).
-            Or a video_stream that yields (image, audio) like in media_toolkit.
+        :param image_generator: a generator that yields images in BGR format (read with cv2).
+            Or a video_stream that yields (image, audio) like VideoFile().to_video_stream() in media_toolkit.
         :return: a generator that yields the swapped images or tuples (image, audio)
         """
         face_name = encode_path_safe(face_name)
-        source_faces = self.load_reference_embedding(face_name)
+        source_faces = self.load_face(face_name)
 
-        for i, target_image in enumerate(target_generator):
+        for i, target_image in enumerate(image_generator):
             # check if generator yields tuples (video, audio) or only images
             audio = None
             if isinstance(target_image, tuple) and len(target_image) == 2:
                 target_image, audio = target_image
 
             try:
-                target_faces = self.get_many_faces(target_image)
-                swapped = self._swap_detected_faces(source_faces, target_faces, target_image, enhance_face_model)
+                target_faces = self.detect_faces(target_image)
+                swapped = self._swap_faces(source_faces, target_faces, target_image, enhance_face_model)
                 if audio is not None:
                     yield swapped, audio
                     continue
@@ -262,37 +200,39 @@ class Face2Face(_FaceRecognition):
 
                 yield np.array(target_image)
 
-    def swap_video(self,
-                   face_name: str,
-                   target_video,
-                   include_audio: bool = True,
-                   enhance_face_model: str = 'gpen_bfr_2048'
+    def swap_faces_to_faces_generator(
+            self,
+            swap_pairs: dict,
+            image_generator,
+            enhance_face_model: str = 'gpen_bfr_2048'
     ):
         """
-        Swaps the face of the target video to the face of the reference image.
-        :param face_name: the name of the reference face embedding
-        :param target_video: the target video. Path to the file or VideoFile object
-        :param include_audio: if True, the audio will be included in the output video
+        Swaps the reference faces in the target image.
+        :param swap_pairs: a dict with the structure {source_face_name: target_face_name}
+        :param image_generator: a generator that yields images in BGR format (read with cv2).
+            Or a video_stream that yields (image, audio) like in media_toolkit.
+        :return: a generator that yields the swapped images or tuples (image, audio)
         """
-        try:
-            from media_toolkit import VideoFile
-        except:
-            raise ImportError("Please install socaity media_toolkit to use this function")
+        for i, target_image in enumerate(image_generator):
+            # check if generator yields tuples (video, audio) or only images
+            audio = None
+            if isinstance(target_image, tuple) and len(target_image) == 2:
+                target_image, audio = target_image
 
-        if isinstance(target_video, str):
-            target_video = VideoFile().from_file(target_video)
+            try:
+                swapped = self.swap_faces_to_faces(swap_pairs, target_image, enhance_face_model)
 
-        if not isinstance(target_video, VideoFile):
-            raise ValueError("target_video must be a path or a VideoFile object")
+                if audio is not None:
+                    yield swapped, audio
+                    continue
 
-        gen = target_video.to_video_stream(include_audio=include_audio)
+                yield swapped
+            except Exception as e:
+                print(f"Error in swapping frame {i}: {e}. Skipping image")
+                if audio is not None:
+                    yield target_image, audio
+                    continue
 
-        new_video = VideoFile().from_video_stream(
-            video_audio_stream=self.swap_generator(face_name, gen, enhance_face_model=enhance_face_model),
-            frame_rate=target_video.frame_rate,
-            audio_sample_rate=target_video.audio_sample_rate
-        )
-        return new_video
-
+                yield np.array(target_image)
 
 

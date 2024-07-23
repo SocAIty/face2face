@@ -30,7 +30,7 @@ def swap_one(source_img: ImageFile, target_img: ImageFile, enhance_face_model: s
 
 @app.task_endpoint("/add_reference_face", queue_size=100)
 def add_reference_face(face_name: str, source_img: ImageFile = None, save: bool = True):
-    face_name, face_embedding = f2f.add_reference_face(face_name, np.array(source_img), save=save)
+    face_name, face_embedding = f2f.add_face(face_name, np.array(source_img), save=save)
     return MediaFile(file_name=f"{face_name}.npz").from_bytesio(face_embedding)
 
 @app.task_endpoint("/swap_from_reference_face", queue_size=100)
@@ -48,7 +48,7 @@ def swap_video(
     def video_stream_gen():
         # generator reads the video stream and swaps the faces frame by frame
         gen = target_video.to_video_stream(include_audio=include_audio)
-        swap_gen = f2f.swap_generator(face_name, gen, enhance_face_model=enhance_face_model)
+        swap_gen = f2f.swap_to_face_generator(face_name, gen, enhance_face_model=enhance_face_model)
         # Swap the images one by one
         for i, swapped_audio_tuple in enumerate(swap_gen):
             audio = None

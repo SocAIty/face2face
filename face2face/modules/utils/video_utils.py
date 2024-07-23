@@ -3,7 +3,7 @@ import os
 from tqdm import tqdm
 
 from face2face.settings import MODELS_DIR
-from face2face.utils import get_files_in_dir
+from face2face.modules.utils import get_files_in_dir
 
 
 

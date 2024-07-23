@@ -7,7 +7,7 @@ from cv2.typing import Size
 import numpy as np
 from insightface.app.common import Face
 from .face_enhance_models import get_model_config, WARP_TEMPLATES
-from ...settings import EXECUTION_PROVIDER, DEVICE_ID
+from face2face.settings import EXECUTION_PROVIDER, DEVICE_ID
 
 # Thread Lock required for onnx engine
 THREAD_LOCK = threading.Lock()

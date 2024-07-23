@@ -48,8 +48,6 @@ Depending on your use case you can install the package with or without the servi
 pip install socaity-face2face 
 # full package with service
 pip install socaity-face2face[full]
-# or from GitHub for the newest version.
-pip install git+https://github.com/SocAIty/face2face
 ```
 Additional dependencies:
 - For VideoFile support in the webservice you also need to install [ffmpeg](https://ffmpeg.org/download.html)
@@ -84,8 +82,9 @@ swapped_img = f2f.swap_one(cv2.imread("src.jpg"), cv2.imread("target.jpg"))
 Create a face embedding with the add_reference_face function and later swap faces with the swap_from_reference_face function.
 
 If argument save=true is set, the face embedding is persisted and the f2f.swap_from_reference_face function can be used later with the same face_name, even after restarting the project.
+
 ```python
-embedding = f2f.add_reference_face("my_new_face", source_img, save=True)
+embedding = f2f.add_face("my_new_face", source_img, save=True)
 # Swap all faces in the target image with the face in the face embedding
 swapped = f2f.swap_from_reference_face("my_new_face", target_img)
 ```
@@ -94,10 +93,11 @@ swapped = f2f.swap_from_reference_face("my_new_face", target_img)
 
 After an embedding was created, we can recognize / identify those persons.
 Then the identified persons can specifically be swapped with defined swap pairs.
+
 ```python
-swapped = f2f.swap_known_faces_to_target_faces("test_imgs/test_multi_swap_from_reference.jpg", swap_pairs={
-    "trump": "hagrid",
-    "biden": "ron"
+swapped = f2f.swap_faces_to_faces("test_imgs/test_multi_swap_from_reference.jpg", swap_pairs={
+   "trump": "hagrid",
+   "biden": "ron"
 })
 ```
 This function will swap the faces of trump with hagrid and biden with ron.
@@ -106,21 +106,24 @@ Therefore it first recognizes the faces in the target image and then swaps them 
 
 ### Swap the faces in a video
 Swap faces in a video. The video is read frame by frame and the faces are swapped.
+
 ```python
-swapped_video = f2f.swap_video(face_name="my_embedding", target_video="my_video.mp4")
+swapped_video = f2f.swap_to_face_in_video(face_name="my_embedding", target_video="my_video.mp4")
 ```
 To use this function you need to install ```socaity-face2face[service]``` or the media_toolkit package.
 
 ### Face swapping with a generator
-Iteratively swapping from a list of images 
+Iteratively swapping from a list of images
+
 ```python
 def my_image_generator():
-    for i in range(100):
-        yield cv2.imread(f"image_{i}.jpg")
+   for i in range(100):
+      yield cv2.imread(f"image_{i}.jpg")
 
-for swapped_img in f2f.swap_generator(face_name="my_embedding", target_img_generator=my_image_generator()):
-    cv2.imshow("swapped", swapped_img)
-    cv2.waitKey(1)
+
+for swapped_img in f2f.swap_to_face_generator(face_name="my_embedding", target_img_generator=my_image_generator()):
+   cv2.imshow("swapped", swapped_img)
+   cv2.waitKey(1)
 ```
 
 ### Face enhancing
