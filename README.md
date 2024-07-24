@@ -25,15 +25,15 @@ We provide the face swapping functionality as SDK and as a convenient web (openA
 The endpoint allows you to easily deploy face swapping, recognition and restoration as a service.
 
 ## Example swaps
-| Face-swap                                              | Multi-face Swap                                | Face-Swap with face-recognition                  |
-|--------------------------------------------------------|------------------------------------------------|--------------------------------------------------|
-| <img src="docs/example_face_swap.jpg" height="250px"/> | <img src="docs/juntos_2.jpg" height="250px" /> | <img src="docs/multi_swap.jpg" height="250px"/>  |
+| Face-swap                                              | Multi-face Swap                                          | Face-Swap with face-recognition                            |
+|--------------------------------------------------------|----------------------------------------------------------|------------------------------------------------------------|
+| <img src="docs/example_face_swap.jpg" height="250px"/> | <img src="docs/example_multi_swap.jpg" height="250px" /> | <img src="docs/swap_with_recognition.jpg" height="250px"/> |
 
 
 
-| Video-swapping                                                                                         | Video-Swapping with face-recognition                                                                                  | Face-restoration                                            |
-|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------| 
-| <a href="https://www.youtube.com/watch?v=dE-d8DIndco"></a><img src="docs/caprified.png" height="250"/> | <a href="https://www.youtube.com/watch?v=dE-d8DIndco"></a><img src="docs/trump_fighting_assassins.png" height="250"/> | <img src="docs/face_restoration_gpen.PNG" height="250px"/>  
+| Video-swapping                                                                                                       | Video-Swapping with face-recognition                                                                                                | Face-restoration                                            |
+|----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------| 
+| <a href="https://www.youtube.com/watch?v=dE-d8DIndco"></a><img src="docs/caprified.png" height="250" width="350px"/> | <a href="https://www.youtube.com/watch?v=dE-d8DIndco"></a><img src="docs/trump_fighting_assassins.png" height="250" width="350px"/> | <img src="docs/face_restoration_gpen.PNG" height="250px"/>  |  
 
 
 
@@ -152,7 +152,16 @@ swapped_img = f2f.swap_one(src_img, target_img, enhance_faces = True, enhance_fa
 ```
 The corresponding model is automatically downloaded and used when enhance_faces is set to True.
 
+#### Face-enhancing without face-swapping
 
+Alternatively you can enhance faces directly without applying a swap. 
+```python
+# enhance all faces in the image
+enhanced_img = f2f.enhance_faces(target_img, enhance_face_model='gpen_bfr_512')
+# enhance a specific face.
+detected_face = f2f.detect_faces(target_img)[0]  # In this case we simply take the first one
+enhanced_img = f2f.enhance_single_face(target_img, detected_face, enhance_face_model='gpen_bfr_512')
+```
 
 # Disclaimer
 
@@ -161,8 +170,8 @@ Please use it responsibly and do not harm others. Do not publish any images with
 The credits for face swapping technology go to the great Insightface Team thank you [insightface.ai](https://insightface.ai/). 
 This project uses their pretrained models and parts of their code. Special thanks goes to their work around [ROOP](https://github.com/s0md3v/sd-webui-roop).
 The author does not claim authorship for this repository. The authors contribution was to provide a convenient API and service around the face swapping.
-A big thank you also goes to all contributors of face enhancement methods in [facefusion](https://github.com/facefusion/facefusion/tree/master) 
-which inspired the face enhancement implementation in this project. 
+A big thank you also goes to the authors of [GPEN](https://github.com/yangxy/GPEN) and [GFPGAN](https://github.com/TencentARC/GFPGAN),
+who developed the models for face restoration.
 
 
 
@@ -171,9 +180,10 @@ which inspired the face enhancement implementation in this project.
 Any help with maintaining and extending the package is welcome. Feel free to open an issue or a pull request.
 
 ToDo:
+- Improve face swap quality
+  - Implement strength factor for applied face
 - Improve inference times
   - by implementing batching.
   - by using multi-threading in image_generators
-- Implement strength factor for applied face
 - remove insightface dependency and update onnx version
 - streaming for the webserver

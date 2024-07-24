@@ -4,8 +4,8 @@ import numpy as np
 import insightface
 from insightface.app.common import Face
 
-from face2face.modules.storage.file_writable_face import FileWriteableFace
-from face2face.modules.utils import get_files_in_dir
+from face2face.core.modules.storage.file_writable_face import FileWriteableFace
+from face2face.core.modules.utils import get_files_in_dir
 
 
 def get_face_analyser(model_path: str, providers, det_size=(320, 320)):

@@ -9,16 +9,18 @@ import onnxruntime
 from insightface.app.common import Face
 
 from face2face.core.mixins._face_embedding import _FaceEmbedding
+from face2face.core.mixins._face_enhance import _FaceEnhancer
 from face2face.core.mixins._face_recognition import _FaceRecognition
 from face2face.core.mixins._video_swap import _Video_Swap
+from face2face.core.modules.face_enhance.face_enhancer import enhance_face
 
-from face2face.modules.storage.f2f_loader import get_face_analyser
-from face2face.modules.utils.utils import encode_path_safe, download_model, load_image
+from face2face.core.modules.storage.f2f_loader import get_face_analyser
+from face2face.core.modules.utils.utils import encode_path_safe, download_model, load_image
 from face2face.settings import MODELS_DIR, REF_FACES_DIR, DEVICE_ID
-from face2face.modules.face_enhance.face_enhancer import enhance_face
 
 
-class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
+
+class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap, _FaceEnhancer):
     def __init__(self, face_embedding_folder: str = None, device_id: int = None):
         """
         :param model_path: the folder where the models are stored and downloaded to.
@@ -61,10 +63,10 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
         """
         Changes the face(s) of the target image to the face(s) of the source image.
         if there are more target faces than source faces, the source face index is reset and starts again left->right.
-        source_faces: the source faces from left to right [face1, None, face3, ... ]
-        target_faces: the target faces from left to right [face1, face2, face3, ... ].
-        target_image: the target image in BGR format (read with cv2)
-        enhance_face_model: if str, the faces will be enhanced with the given face enhancer model.
+        :param source_faces: the source faces from left to right [face1, None, face3, ... ]
+        :param target_faces: the target faces from left to right [face1, face2, face3, ... ].
+        :param target_image: the target image in BGR format (read with cv2)
+        :param enhance_face_model: if str, the faces will be enhanced with the given face enhancer model.
             if none the faces will not be enhanced
         """
         if source_faces is None or len(source_faces) == 0:
@@ -110,12 +112,14 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
         self,
         source_image: Union[np.array, str],
         target_image: Union[np.array, str],
-        enhance_face_model: str = 'gpen_bfr_512'
+        enhance_face_model: Union[str, None] = 'gpen_bfr_512'
     ) -> np.array:
         """
         Changes the face(s) of the target image to the face(s) of the source image.
-        source_image: the source image in BGR format (read with cv2)
-        target_image: the target image in BGR format (read with cv2)
+        :param source_image: the source image in BGR format (read with cv2)
+        :param target_image: the target image in BGR format (read with cv2)
+        :param enhance_face_model: if str, the faces will be enhanced with the given face enhancer model.
+            if none the faces will not be enhanced
         """
         source_image = load_image(source_image)
         target_image = load_image(target_image)
@@ -129,12 +133,14 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
         target_faces = self.detect_faces(target_image)
         return self._swap_faces(source_faces, target_faces, target_image, enhance_face_model)
 
-    def detect_faces(self, frame: np.ndarray) -> Union[List | None]:
+    def detect_faces(self, image: Union[np.array, str]) -> Union[List | None]:
         """
         get faces from left to right by order
         """
+        image = load_image(image)
+
         try:
-            face = self._face_analyser.get(frame)
+            face = self._face_analyser.get(image)
             return sorted(face, key=lambda x: x.bbox[0])
         except IndexError:
             return None
@@ -143,12 +149,14 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
             self,
             face_name: str,
             target_image: Union[np.array, list],
-            enhance_face_model: str | None = 'gpen_bfr_2048'
+            enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
         ) -> np.array:
         """
         Changes the face(s) of the target image to the face of the reference image.
         :param face_name: the name of the reference face
         :param target_image: the target image in BGR format (read with cv2). Can be a list of images
+        :param enhance_face_model: if str, the faces will be enhanced with the given face enhancer model.
+            if none the faces will not be enhanced
         :return: the swapped image
         """
         face_name = encode_path_safe(face_name)
@@ -166,13 +174,15 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
             self,
             face_name: str,
             image_generator,
-            enhance_face_model: str = 'gpen_bfr_2048'
+            enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
     ):
         """
         Changes the face(s) of each image in the target_img_generator to the face of the reference image.
         :param face_name: the name of the reference face
         :param image_generator: a generator that yields images in BGR format (read with cv2).
             Or a video_stream that yields (image, audio) like VideoFile().to_video_stream() in media_toolkit.
+        :param enhance_face_model: if str, the faces will be enhanced with the given face enhancer model.
+            if none the faces will not be enhanced
         :return: a generator that yields the swapped images or tuples (image, audio)
         """
         face_name = encode_path_safe(face_name)
@@ -204,7 +214,7 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
             self,
             swap_pairs: dict,
             image_generator,
-            enhance_face_model: str = 'gpen_bfr_2048'
+            enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
     ):
         """
         Swaps the reference faces in the target image.
@@ -220,7 +230,7 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
                 target_image, audio = target_image
 
             try:
-                swapped = self.swap_pairs(swap_pairs, target_image, enhance_face_model)
+                swapped = self.swap_pairs(swap_pairs=swap_pairs, image=target_image, enhance_face_model=enhance_face_model)
 
                 if audio is not None:
                     yield swapped, audio
@@ -234,5 +244,3 @@ class Face2Face(_FaceEmbedding, _FaceRecognition, _Video_Swap):
                     continue
 
                 yield np.array(target_image)
-
-

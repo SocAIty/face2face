@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 # normal imports
 from collections import OrderedDict
 from insightface.app.common import Face
-from face2face.modules.utils.utils import load_image
+from face2face.core.modules.utils.utils import load_image
 import numpy as np
 
 

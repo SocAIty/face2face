@@ -12,11 +12,10 @@ from io import BytesIO
 import numpy as np
 from insightface.app.common import Face
 
-from face2face.modules.storage.f2f_loader import load_reference_face_from_file
-from face2face.modules.storage.file_writable_face import FileWriteableFace
+from face2face.core.modules.storage.f2f_loader import load_reference_face_from_file
+from face2face.core.modules.storage.file_writable_face import FileWriteableFace
 from face2face.settings import REF_FACES_DIR
-from face2face.modules.utils import encode_path_safe
-from face2face.modules.utils.utils import load_image
+from face2face.core.modules.utils.utils import load_image, encode_path_safe
 
 
 class _FaceEmbedding:

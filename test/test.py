@@ -3,13 +3,18 @@ import cv2
 from media_toolkit import VideoFile
 
 
-f2f = Face2Face(device_id=1)
+f2f = Face2Face(device_id=0)
 def test_single_face_swap():
     source_img = "test_imgs/test_face_1.jpg"
     target_img = "test_imgs/test_face_2.jpg"
-    swapped = f2f.swap_one_image(source_img, target_img, enhance_face_model='gpen_bfr_2048')
+    swapped = f2f.swap_one_image(source_img, target_img, enhance_face_model=None)
     cv2.imwrite("test_swap.png", swapped)
-#
+
+def test_multi_face_swap():
+    source_img = "test_imgs/three.jpeg"
+    target_img = "test_imgs/three_men.jpeg"
+    swapped = f2f.swap_one_image(source_img, target_img, enhance_face_model='gpen_bfr_2048')
+    cv2.imwrite("multi_swap.png", swapped)
 
 def test_embedding_face_swap():
     source_img = "test_imgs/test_face_1.jpg"
@@ -34,6 +39,17 @@ def test_multi_face_from_reference():
         "biden": "ron"
     })
     cv2.imwrite("../docs/swap_with_recognition.jpg", swapped)
+
+
+def test_face_enhancing():
+    source_img = "test_imgs/test_face_1.jpg"
+    enhanced = f2f.enhance_faces(image=source_img, model='gpen_bfr_2048')
+    cv2.imwrite("enhance_test_gpen_bfr_2048.png", enhanced)
+
+    f = f2f.detect_faces(source_img)
+    enhanced = f2f.enhance_single_face(image=source_img, target_face=f[0], model='gfpgan_1.4')
+    cv2.imwrite("enhance_single_face_gfpgan_1.4.png", enhanced)
+
 
 def test_video_face_swap():
     # add ref face
@@ -60,6 +76,8 @@ def test_multi_face_video_swap():
 
 
 if __name__ == "__main__":
-
-    test_multi_face_from_reference()
+    # test_multi_face_swap()
+    #test_multi_face_from_reference()
+    test_face_enhancing()
     test_multi_face_video_swap()
+    a = 1
