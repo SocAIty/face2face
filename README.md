@@ -33,7 +33,7 @@ The endpoint allows you to easily deploy face swapping, recognition and restorat
 
 | Video-swapping                                                                                                       | Video-Swapping with face-recognition                                                                                                | Face-restoration                                            |
 |----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------| 
-| <a href="https://www.youtube.com/watch?v=dE-d8DIndco"></a><img src="docs/caprified.png" height="250" width="350px"/> | <a href="https://www.youtube.com/watch?v=dE-d8DIndco"></a><img src="docs/trump_fighting_assassins.png" height="250" width="350px"/> | <img src="docs/face_restoration_gpen.PNG" height="250px"/>  |  
+| <a href="https://www.youtube.com/watch?v=dE-d8DIndco"><img src="docs/caprified.png" height="250" width="350px"/></a> | <a href="https://www.youtube.com/watch?v=dE-d8DIndco"><img src="docs/trump_fighting_assassins.png" height="250" width="350px"/></a> | <img src="docs/face_restoration_gpen.PNG" height="250px"/>  |  
 
 
 
