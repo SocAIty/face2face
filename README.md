@@ -12,7 +12,7 @@ With this repository you can:
 
 - [Swap faces from one image to another](#swap-faces-from-one-image-to-another). 
 - [Swap faces in videos](#swap-faces-in-videos).
-- [Create face embeddings](#face-swapping-with-saved-reference-faces). With these embeddings you can later swap faces without running the whole stack again.
+- [Face embeddings](#face-swapping-with-saved-reference-faces). Create face embeddings. With these embeddings you can later swap faces just by using the name.
 - [Face restoration](#face-enhancing): Enhance image quality of a portrait with a face enhancer model.
 - Identify faces with face-recognition
 - [Run face swapping as a service](docs/WebService.md).
@@ -25,16 +25,20 @@ We provide the face swapping functionality as SDK and as a convenient web (openA
 The endpoint allows you to easily deploy face swapping, recognition and restoration as a service.
 
 ## Example swaps
-| Face-swap                                              | Multi-face Swap                                          | Face-Swap with face-recognition                            |
-|--------------------------------------------------------|----------------------------------------------------------|------------------------------------------------------------|
-| <img src="docs/example_face_swap.jpg" height="250px"/> | <img src="docs/example_multi_swap.jpg" height="250px" /> | <img src="docs/swap_with_recognition.jpg" height="250px"/> |
+| [Face-swap](#swap-faces-from-one-image-to-another)    | [Multi-face Swap](#swap-faces-from-one-image-to-another ) | 
+|-------------------------------------------------------|-----------------------------------------------------------|
+| <img src="docs/example_face_swap.jpg" height="250px"/> | <img src="docs/example_multi_swap.jpg" height="250px" />  |
 
 
 
-| Video-swapping                                                                                                       | Video-Swapping with face-recognition                                                                                                | Face-restoration                                            |
-|----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------| 
-| <a href="https://www.youtube.com/watch?v=dE-d8DIndco"><img src="docs/caprified.png" height="250" width="350px"/></a> | <a href="https://www.youtube.com/watch?v=7l-3UAWh8Pw"><img src="docs/trump_fighting_assassins.png" height="250" width="350px"/></a> | <img src="docs/face_restoration_gpen.PNG" height="250px"/>  |  
+| [Video-swapping](#swap-faces-in-videos)                                                                 | [Video-Swapping with face-recognition](#swap-faces-in-videos)                                                                              | 
+|---------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| <a href="https://www.youtube.com/watch?v=dE-d8DIndco"><img src="docs/caprified.png" height="250" /></a> | <a href="https://www.youtube.com/watch?v=7l-3UAWh8Pw"><img src="docs/trump_fighting_assassins.png" height="250" /></a> |   
 
+
+| [Face restoration](#face-enhancing)                        | [Face-Swap with face-recognition](#face-swapping-with-face-recognition-swap-pairs ) |
+|------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| <img src="docs/face_restoration_gpen.PNG" height="250px"/> | <img src="docs/swap_with_recognition.jpg" height="250px"/>                          |
 
 
 # Setup
