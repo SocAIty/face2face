@@ -13,7 +13,7 @@ With this repository you can:
 - [Swap faces from one image to another](#swap-faces-from-one-image-to-another). 
 - [Swap faces in videos](#swap-faces-in-videos).
 - [Create face embeddings](#face-swapping-with-saved-reference-faces). With these embeddings you can later swap faces without running the whole stack again.
-- Face restoration: Enhance image quality of a portrait with a face enhancer model.
+- [Face restoration](#face-enhancing): Enhance image quality of a portrait with a face enhancer model.
 - Identify faces with face-recognition
 - [Run face swapping as a service](docs/WebService.md).
 
