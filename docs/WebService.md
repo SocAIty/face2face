@@ -65,7 +65,7 @@ from media_toolkit import VideoFile
 my_video = VideoFile("my_video.mp4")
 request = httpx.post(
    "http://localhost:8020/swap_video", params={ "face_name" : "myface"}, 
-    files={"target_video": my_video.to_httpx_send_able_tuple()}
+    files={"video": my_video.to_httpx_send_able_tuple()}
 )
 ```
 

@@ -71,13 +71,13 @@ def test_multi_face_video_swap():
     swapped = f2f.swap_pairs_in_video(swap_pairs={
         "murphy": "biden",
         "warren": "harris"
-    }, target_video=vf)
+    }, video=vf)
     swapped.save("test_imgs/z.mp4")
 
 
 if __name__ == "__main__":
     # test_multi_face_swap()
     #test_multi_face_from_reference()
-    test_face_enhancing()
+    # test_face_enhancing()
     test_multi_face_video_swap()
     a = 1

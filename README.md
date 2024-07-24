@@ -117,7 +117,7 @@ Swap faces in a video. The video is read frame by frame and the faces are swappe
 # to swap all faces in the video with the face in the embedding
 swapped_video = f2f.swap_to_face_in_video(face_name="my_embedding", target_video="my_video.mp4")
 # with face recognition
-swapped_video = f2f.swap_pairs_in_video(target_video="my_video.mp4", swap_pairs={"trump": "hagrid"})
+swapped_video = f2f.swap_pairs_in_video(video="my_video.mp4", swap_pairs={"trump": "hagrid"})
 ```
 To use this function you need to install ```socaity-face2face[service]``` or the [media_toolkit](https://github.com/SocAIty/media-toolkit) package.
 

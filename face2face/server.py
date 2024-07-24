@@ -15,7 +15,7 @@ app = FastTaskAPI(
     app=fastapi.FastAPI(
         title="Face2Face service",
         summary="Swap faces from images and videos. Create face embeddings.",
-        version="0.0.2",
+        version="0.0.6",
         contact={
             "name": "SocAIty",
             "url": "https://github.com/SocAIty",
@@ -28,21 +28,27 @@ def swap_one(source_img: ImageFile, target_img: ImageFile, enhance_face_model: s
     swapped_img = f2f.swap_one_image(np.array(source_img), np.array(target_img), enhance_face_model=enhance_face_model)
     return ImageFile(file_name="swapped_img.png").from_np_array(swapped_img)
 
-@app.task_endpoint("/add_reference_face", queue_size=100)
+@app.task_endpoint("/add_face", queue_size=100)
 def add_reference_face(face_name: str, source_img: ImageFile = None, save: bool = True):
     face_name, face_embedding = f2f.add_face(face_name, np.array(source_img), save=save)
     return MediaFile(file_name=f"{face_name}.npz").from_bytesio(face_embedding)
 
-@app.task_endpoint("/swap_from_reference_face", queue_size=100)
-def swap_from_reference_face(face_name: str, target_img: ImageFile = None, enhance_face_model: str = 'gpen_bfr_512'):
-    swapped_img = f2f.swap_from_reference_face(face_name, np.array(target_img), enhance_face_model=enhance_face_model)
+@app.task_endpoint("/swap_to_face", queue_size=100)
+def swap_to_face(face_name: str, target_img: ImageFile = None, enhance_face_model: str = 'gpen_bfr_512'):
+    swapped_img = f2f.swap_to_face(face_name, np.array(target_img), enhance_face_model=enhance_face_model)
     return ImageFile(file_name=f"swapped_to_{face_name}.png").from_np_array(swapped_img)
 
+@app.task_endpoint("/swap_pairs", queue_size=100)
+def swap_pairs(image: ImageFile, swap_pairs: dict, enhance_face_model: str = 'gpen_bfr_512'):
+    swapped_img = f2f.swap_pairs(image=np.array(image), swap_pairs=swap_pairs, enhance_face_model=enhance_face_model)
+    return ImageFile(file_name="swapped_img.png").from_np_array(swapped_img)
 
 @app.task_endpoint("/swap_video", queue_size=1)
 def swap_video(
         job_progress: JobProgress,
-        face_name: str, target_video: VideoFile, include_audio: bool = True,
+        face_name: str,
+        target_video: VideoFile,
+        include_audio: bool = True,
         enhance_face_model: str = 'gpen_bfr_512'
     ):
     def video_stream_gen():
@@ -84,6 +90,11 @@ def swap_video(
         audio_sample_rate=target_video.audio_sample_rate
     )
     return output_video
+
+@app.task_endpoint("/swap_pairs_in_video", queue_size=100)
+def swap_pairs_in_video(video: VideoFile, swap_pairs: dict, enhance_face_model: str = 'gpen_bfr_512'):
+    swapped_video = f2f.swap_pairs_in_video(video=video, swap_pairs=swap_pairs, enhance_face_model=enhance_face_model)
+    return swapped_video
 
 
 def start_server(port: int = PORT):

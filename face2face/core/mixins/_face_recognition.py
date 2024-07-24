@@ -84,7 +84,7 @@ class _FaceRecognition:
         return self._swap_faces(
             source_faces=swap_embeddings,
             target_faces=[rec[2] for rec in recognized_partner_faces],
-            target_image=image,
+            image=image,
             enhance_face_model=enhance_face_model
         )
 
