@@ -1,6 +1,9 @@
 # avoid circular dependency but provide type hints
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union, List, Tuple
+
+from media_toolkit import ImageFile
+
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
@@ -15,7 +18,7 @@ from insightface.app.common import Face
 from face2face.core.modules.storage.f2f_loader import load_reference_face_from_file
 from face2face.core.modules.storage.file_writable_face import FileWriteableFace
 from face2face.settings import REF_FACES_DIR
-from face2face.core.modules.utils.utils import load_image, encode_path_safe
+from face2face.core.modules.utils.utils import encode_path_safe
 
 
 class _FaceEmbedding:
@@ -45,18 +48,28 @@ class _FaceEmbedding:
         self._face_embeddings[face_name] = embedding
         return embedding
 
-    def load_faces(self, face_names: Union[str, List[str], None] = None) -> dict:
+    def load_faces(self, face_names: Union[str, List[str], List[Face], None] = None) -> dict:
         """
         :param face_names: the faces to load from the _face_embeddings folder.
             If None all stored face_embeddings are loaded and returned.
-        :return: the loaded faces as dict {face_name: face_embedding}
+            If list of strings, the faces with the names in the list are loaded.
+            If list of Face objects, the faces are returned as { index: face }.
+        :return: the loaded faces as dict {face_name: face_embedding}.
         """
         if face_names is None:
             return self.load_all_faces()
         elif isinstance(face_names, str):
             return {face_names: self.load_face(face_names)}
-        else:
-            return {face_name: self.load_face(face_name) for face_name in face_names}
+
+        # convert whatever list to dict
+        ret = {}
+        for i, face in enumerate(face_names):
+            if isinstance(face, Face):
+                ret[i] = face
+            elif isinstance(face, str):
+                ret[face] = self.load_face(face)
+
+        return ret
 
     def load_all_faces(self: Face2Face):
         """
@@ -66,7 +79,12 @@ class _FaceEmbedding:
             self.load_face(face_name)
         return self._face_embeddings
 
-    def add_face(self: Face2Face, face_name: str, ref_image: Union[np.array, str], save=False) -> Tuple[str, np.array]:
+    def add_face(
+            self: Face2Face,
+            face_name: str,
+            ref_image: Union[np.array, str, ImageFile],
+            save: bool = False
+    ) -> Tuple[str, np.array]:
         """
         Add a reference face to the face swapper. The face swapper will use this face to swap it to other images.
         Use the method swap_from_reference_face to swap the reference face to other images.
@@ -75,11 +93,10 @@ class _FaceEmbedding:
         :param save: if True, the reference face will be saved to the _face_embeddings folder and available next startup
         :return: the savely encoded face name and the reference face
         """
+        ref_image = ImageFile().from_any(ref_image)
         face_name = encode_path_safe(face_name)
-        ref_image = load_image(ref_image)
 
         self._face_embeddings[face_name] = self.detect_faces(ref_image)
-
         # make faces pickle able by converting them to FileWriteableFace
         save_able_ref_faces = [FileWriteableFace(face) for face in self._face_embeddings[face_name]]
 

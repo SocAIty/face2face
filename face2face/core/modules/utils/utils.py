@@ -2,6 +2,7 @@ import re
 import os
 import urllib
 from typing import Union
+import mimetypes
 import numpy as np
 import cv2
 
@@ -10,16 +11,17 @@ import glob
 from face2face.model_definitions import SWAPPER_MODELS, FACE_ENHANCER_MODELS
 
 
-def load_image(img: Union[np.array, str]):
-    if isinstance(img, np.ndarray):
-        return img
-    if isinstance(img, str) and os.path.isfile(img) and os.path.exists(img):
-        img = cv2.imread(img)
-        if img is None:
-            raise ValueError(f"Could not load image {img}. Check file path")
-    else:
-        raise ValueError(f"Could not load image {img}. Check inputs")
-    return img
+#def load_image(img: Union[np.array, str]):
+#    if isinstance(img, np.ndarray):
+#        return img
+#    if isinstance(img, str) and os.path.isfile(img) and os.path.exists(img):
+#        img = cv2.imread(img)
+#        if img is None:
+#            raise ValueError(f"Could not load image {img}. Check file path")
+#    else:
+#        raise ValueError(f"Could not load image {img}. Check inputs")
+#    return img
+
 
 def encode_path_safe(filename: str, allow_unicode=False):
     """

@@ -13,10 +13,9 @@ authors = [
 license = { text = "GPLv3" }
 readme = "README.md"
 dependencies = [
-    'numpy',
-    'opencv-python>=4.10.0.80',
     'insightface==0.7.3',
-    'onnxruntime-gpu==1.15.1'
+    'onnxruntime-gpu==1.15.1',
+    'media-toolkit[VideoFile]>=0.0.7',
 ]
 
 [project.urls]
@@ -25,10 +24,5 @@ Repository = "https://github.com/SocAIty/face2face"
 
 [project.optional-dependencies]
 full = [
-    'numpy',
-    'opencv-python>=4.10.0.80',
-    'insightface==0.7.3',
-    'onnxruntime-gpu==1.15.1',
     "fast-task-api[full]>=0.0.4",
-    "media-toolkit[VideoFile] >= 0.0.7"
 ]

@@ -25,7 +25,7 @@ app = FastTaskAPI(
 
 @app.task_endpoint("/swap_one", queue_size=100)
 def swap_one(source_img: ImageFile, target_img: ImageFile, enhance_face_model: str = 'gpen_bfr_512'):
-    swapped_img = f2f.swap_one_image(np.array(source_img), np.array(target_img), enhance_face_model=enhance_face_model)
+    swapped_img = f2f.swap_img_to_img(np.array(source_img), np.array(target_img), enhance_face_model=enhance_face_model)
     return ImageFile(file_name="swapped_img.png").from_np_array(swapped_img)
 
 @app.task_endpoint("/add_face", queue_size=100)
@@ -35,7 +35,7 @@ def add_reference_face(face_name: str, source_img: ImageFile = None, save: bool 
 
 @app.task_endpoint("/swap_to_face", queue_size=100)
 def swap_to_face(face_name: str, target_img: ImageFile = None, enhance_face_model: str = 'gpen_bfr_512'):
-    swapped_img = f2f.swap_to_face(face_name, np.array(target_img), enhance_face_model=enhance_face_model)
+    swapped_img = f2f.swap_to_faces(face_name, np.array(target_img), enhance_face_model=enhance_face_model)
     return ImageFile(file_name=f"swapped_to_{face_name}.png").from_np_array(swapped_img)
 
 @app.task_endpoint("/swap_pairs", queue_size=100)

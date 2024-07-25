@@ -7,20 +7,20 @@ f2f = Face2Face(device_id=0)
 def test_single_face_swap():
     source_img = "test_imgs/test_face_1.jpg"
     target_img = "test_imgs/test_face_2.jpg"
-    swapped = f2f.swap_one_image(source_img, target_img, enhance_face_model=None)
+    swapped = f2f.swap_img_to_img(source_img, target_img, enhance_face_model=None)
     cv2.imwrite("test_swap.png", swapped)
 
 def test_multi_face_swap():
     source_img = "test_imgs/three.jpeg"
     target_img = "test_imgs/three_men.jpeg"
-    swapped = f2f.swap_one_image(source_img, target_img, enhance_face_model='gpen_bfr_2048')
+    swapped = f2f.swap_img_to_img(source_img, target_img, enhance_face_model='gpen_bfr_2048')
     cv2.imwrite("multi_swap.png", swapped)
 
 def test_embedding_face_swap():
     source_img = "test_imgs/test_face_1.jpg"
     target_img = "test_imgs/test_face_2.jpg"
     f2f.add_face("hagrid", source_img, save=True)
-    swapped = f2f.swap_to_face("hagrid", target_img)
+    swapped = f2f.swap_to_faces("hagrid", target_img)
     cv2.imwrite("test_swap.png", swapped)
 
 def test_multi_face_from_reference():
@@ -57,7 +57,7 @@ def test_video_face_swap():
     f2f.add_face("caprio", source_img, save=True)
     # swap it
     vf = VideoFile().from_file("test_imgs/smithy.mp4")
-    swapped = f2f.swap_to_face_in_video(face_name="caprio", target_video=vf)
+    swapped = f2f.swap_to_face_in_video(face_name="caprio", video=vf)
     swapped.save("test_imgs/test_video_2_swapped_swapped_smithy.mp4")
 
 def test_multi_face_video_swap():

@@ -81,18 +81,17 @@ different GPUs.
 
 ### Swap faces from one image to another
 ```python
-swapped_img = f2f.swap_one("path/to/src.jpg", "path/to/target.jpg")
+swapped_img = f2f.swap_img_to_img("path/to/src.jpg", "path/to/target.jpg")
 ```
 ### Face swapping with saved reference faces
 
 Create a face embedding with the add_reference_face function and later swap faces with the swap_from_reference_face function.
-
 If argument save=true is set, the face embedding is persisted and the f2f.swap_from_reference_face function can be used later with the same face_name, even after restarting the project.
 
 ```python
-embedding = f2f.add_face("my_new_face", source_img, save=True)
+embedding = f2f.add_face("my_new_face", "path/to/my_img_or_video.mp4", save=True)
 # Swap all faces in the target image with the face(s) in the face embedding
-swapped = f2f.swap_to_face("my_new_face", target_img)
+swapped = f2f.swap(media="path/to/my_img_or_video.jpg", faces="my_new_face")
 ```
 
 ### Face swapping with face recognition (swap pairs)
@@ -101,25 +100,18 @@ After an embedding was created, we can recognize / identify those persons.
 Then the identified persons can specifically be swapped with defined swap pairs.
 
 ```python
-swapped = f2f.swap_pairs("test_imgs/test_multi_swap_from_reference.jpg", swap_pairs={
-   "trump": "hagrid",
-   "biden": "ron"
-})
+# Swap faces with defined swap pairs
+# assumption the faces [trump, hagrid, biden, ron] are already added with f2f.add_face
+swapped = f2f.swap(
+  media="path/to/my_img_or_video.mp4", 
+  faces={
+      "trump": "hagrid",
+      "biden": "ron"
+  }
+)
 ```
 This function will swap the faces of trump with hagrid and biden with ron.
 Therefore it first recognizes the faces in the target image and then swaps them with the defined swap pairs.
-
-
-### Swap faces in videos
-Swap faces in a video. The video is read frame by frame and the faces are swapped.
-
-```python
-# to swap all faces in the video with the face in the embedding
-swapped_video = f2f.swap_to_face_in_video(face_name="my_embedding", target_video="my_video.mp4")
-# with face recognition
-swapped_video = f2f.swap_pairs_in_video(video="my_video.mp4", swap_pairs={"trump": "hagrid"})
-```
-To use this function you need to install ```socaity-face2face[service]``` or the [media_toolkit](https://github.com/SocAIty/media-toolkit) package.
 
 
 ### Face swapping with a generator
@@ -127,19 +119,19 @@ Iteratively swapping from a list of images
 
 ```python
 def my_image_generator():
-   for i in range(100):
-      yield cv2.imread(f"image_{i}.jpg")
+  for i in range(100):
+    yield cv2.imread(f"image_{i}.jpg")
 
 
 # for swapping to always the same face
-for swapped_img in f2f.swap_to_face_generator(face_name="my_embedding", target_img_generator=my_image_generator()):
-   cv2.imshow("swapped", swapped_img)
-   cv2.waitKey(1)
+for swapped_img in f2f.swap_to_face_generator(faces="my_embedding", target_img_generator=my_image_generator()):
+  cv2.imshow("swapped", swapped_img)
+  cv2.waitKey(1)
 
 # including face recognition
 for swapped_img in f2f.swap_pairs_generator(target_img_generator=my_image_generator(), swap_pairs={"trump": "hagrid"}):
-   cv2.imshow("swapped", swapped_img)
-   cv2.waitKey(1)
+  cv2.imshow("swapped", swapped_img)
+  cv2.waitKey(1)
 
 ```
 
@@ -152,7 +144,7 @@ and the [gpen](https://github.com/yangxy/GPEN) family.
 Check model_definitions.py for the available models.
 You can upscale up to 2048 with the GPEN model --> higher quality + higher runtime.
 ```python
-swapped_img = f2f.swap_one(src_img, target_img, enhance_faces = True, enhance_face_model='gpen_bfr_512' )
+swapped_img = f2f.swap(media="path/to/my_img_or_video.mp4", enhance_face_model='gpen_bfr_512')
 ```
 The corresponding model is automatically downloaded and used when enhance_faces is set to True.
 
@@ -161,8 +153,9 @@ The corresponding model is automatically downloaded and used when enhance_faces 
 Alternatively you can enhance faces directly without applying a swap. 
 ```python
 # enhance all faces in the image
-enhanced_img = f2f.enhance_faces(target_img, enhance_face_model='gpen_bfr_512')
+enhanced_img = f2f.enhance_faces(image="path/to/my_img.jpg", enhance_face_model='gpen_bfr_512')
 # enhance a specific face.
+target_img = cv2.imread("path/to/my_img.jpg")
 detected_face = f2f.detect_faces(target_img)[0]  # In this case we simply take the first one
 enhanced_img = f2f.enhance_single_face(target_img, detected_face, enhance_face_model='gpen_bfr_512')
 ```
@@ -176,7 +169,6 @@ This project uses their pretrained models and parts of their code. Special thank
 The author does not claim authorship for this repository. The authors contribution was to provide a convenient API and service around the face swapping.
 A big thank you also goes to the authors of [GPEN](https://github.com/yangxy/GPEN) and [GFPGAN](https://github.com/TencentARC/GFPGAN),
 who developed the models for face restoration.
-
 
 
 # Contribute

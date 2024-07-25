@@ -38,7 +38,7 @@ import requests
 with open("src.jpg", "rb") as image:
     src_img = image.read()
 
-response = requests.post("http://localhost:8020/api/add_reference_face", params={ "face_name": "myface", "save": True}, files={"source_img": src_img})
+response = requests.post("http://localhost:8020/api/add_reference_face", params={ "faces": "myface", "save": True}, files={"source_img": src_img})
 ```
 The response is a .npz file as bytes. 
 After the embedding was created it can be used in the next swapping with the given face_name.
@@ -52,7 +52,7 @@ with open("target.jpg", "rb") as image:
 
 response = requests.post(
    "http://localhost:8020/api/swap_from_reference_face", 
-    params={ "face_name" : "myface"}, files={"target_img": target_img}
+    params={ "faces" : "myface"}, files={"target_img": target_img}
 )
 ```
 In this example it is assumed that previously a face embedding with name "myface" was created with the add_reference_face endpoint.
@@ -64,7 +64,7 @@ import httpx
 from media_toolkit import VideoFile
 my_video = VideoFile("my_video.mp4")
 request = httpx.post(
-   "http://localhost:8020/swap_video", params={ "face_name" : "myface"}, 
+   "http://localhost:8020/swap_video", params={ "faces" : "myface"}, 
     files={"video": my_video.to_httpx_send_able_tuple()}
 )
 ```

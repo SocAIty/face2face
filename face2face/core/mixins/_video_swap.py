@@ -4,45 +4,72 @@ from typing import TYPE_CHECKING, Union, List, Dict
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
+# other imports
+from insightface.app.common import Face
+from media_toolkit import VideoFile
+
+
+
 
 class _Video_Swap:
-    def swap_to_face_in_video(self: Face2Face,
-                              face_name: str,
-                              target_video,
-                              include_audio: bool = True,
-                              enhance_face_model: str = 'gpen_bfr_2048'
-                              ):
+
+    def swap_video(
+            self: Face2Face,
+            video: Union[str, VideoFile],
+            faces: Union[str, dict, list, List[Face], Face],
+            enhance_face_model: str = 'gpen_bfr_2048',
+            include_audio: bool = True
+    ):
+        """
+        Swaps the faces in the video.
+        :param video: the video to swap the faces in
+        :param faces: the faces to swap in the video
+        :param enhance_face_model: the face enhancement model to use. Use None for no enhancement
+        :param include_audio: if True, the audio will be included in the output video
+        """
+        video = VideoFile().from_file(video)
+        if isinstance(faces, dict):
+            return self.swap_pairs_in_video(
+                swap_pairs=faces, video=video, enhance_face_model=enhance_face_model, include_audio=include_audio
+            )
+        elif type(faces) in [list, str, Face]:
+            return self.swap_to_face_in_video(
+                faces=faces, video=video, enhance_face_model=enhance_face_model, include_audio=include_audio
+            )
+
+        raise NotImplementedError
+
+    def swap_to_face_in_video(
+            self: Face2Face,
+            faces: str,
+            video: Union[str, VideoFile],
+            include_audio: bool = True,
+            enhance_face_model: str = 'gpen_bfr_2048'
+        ):
         """
         Swaps the face of the target video to the face of the reference image.
         :param face_name: the name of the reference face embedding
-        :param target_video: the target video. Path to the file or VideoFile object
+        :param video: the target video. Path to the file or VideoFile object
         :param include_audio: if True, the audio will be included in the output video
         :param enhance_face_model: the face enhancement model to use. Use None for no enhancement
         """
-        try:
-            from media_toolkit import VideoFile
-        except:
-            raise ImportError("Please install socaity media_toolkit to use this function")
+        video = VideoFile().from_file(video)
+        if not isinstance(video, VideoFile):
+            raise ValueError("Video must be a path or a VideoFile object")
 
-        if isinstance(target_video, str):
-            target_video = VideoFile().from_file(target_video)
-
-        if not isinstance(target_video, VideoFile):
-            raise ValueError("video must be a path or a VideoFile object")
-
-        gen = target_video.to_video_stream(include_audio=include_audio)
+        gen = video.to_video_stream(include_audio=include_audio)
 
         new_video = VideoFile().from_video_stream(
             video_audio_stream=self.swap_to_face_generator(face_name, gen, enhance_face_model=enhance_face_model),
-            frame_rate=target_video.frame_rate,
-            audio_sample_rate=target_video.audio_sample_rate
+            frame_rate=video.frame_rate,
+            audio_sample_rate=video.audio_sample_rate
         )
         return new_video
 
     def swap_pairs_in_video(
             self: Face2Face,
             swap_pairs: dict,
-            video,
+            video: Union[str, VideoFile],
             include_audio: bool = True,
             enhance_face_model: Union[str, None] = 'gpen_bfr_256',
             recognition_threshold: float = 0.5
@@ -55,16 +82,9 @@ class _Video_Swap:
         :param recognition_threshold: the threshold for face-recognition. Lower value -> more false positives
         :param include_audio: if True, the audio will be included in the output video
         """
-        try:
-            from media_toolkit import VideoFile
-        except:
-            raise ImportError("Please install socaity media_toolkit to use this function")
-
-        if isinstance(video, str):
-            video = VideoFile().from_file(video)
-
+        video = VideoFile().from_file(video)
         if not isinstance(video, VideoFile):
-            raise ValueError("video must be a path or a VideoFile object")
+            raise ValueError("Video must be a path or a VideoFile object")
 
         gen = video.to_video_stream(include_audio=include_audio)
 

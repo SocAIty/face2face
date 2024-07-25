@@ -1,13 +1,15 @@
 # avoid circular dependency but provide type hints
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union, List, Dict
+
+from media_toolkit import ImageFile
+
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
 # normal imports
 from collections import OrderedDict
 from insightface.app.common import Face
-from face2face.core.modules.utils.utils import load_image
 import numpy as np
 
 
@@ -29,7 +31,7 @@ class _FaceRecognition:
         :param threshold: the threshold distance to recognize a face
         :return: A list with tuples in form [(recognized_face_name, dist, detected_face_in_image), ... ]
         """
-        image = load_image(image)
+        image = ImageFile().from_any(image)
         detected_faces = self.detect_faces(image)
 
         # Load reference faces
@@ -62,7 +64,7 @@ class _FaceRecognition:
         2. Call the swap function with the target faces.
 
         """
-        image = load_image(image)
+        image = ImageFile().from_any(image)
 
         # recognize the faces of first swap partners in the image
         recognized_partner_faces = self.face_recognition(
@@ -87,6 +89,51 @@ class _FaceRecognition:
             image=image,
             enhance_face_model=enhance_face_model
         )
+
+    def swap_pairs_generator(
+            self: Face2Face,
+            swap_pairs: dict,
+            image_generator,
+            enhance_face_model: Union[str, None] = 'gpen_bfr_2048',
+            recognition_threshold: float = 0.5
+    ):
+        """
+        Swaps the reference faces in the target image.
+        :param swap_pairs: a dict with the structure {source_face_name: target_face_name}
+        :param image_generator: a generator that yields images in BGR format (read with cv2).
+            Or a video_stream that yields (image, audio) like in media_toolkit.
+        :return: a generator that yields the swapped images or tuples (image, audio)
+        """
+        if not isinstance(swap_pairs, dict):
+            raise ValueError("Please provide a dict with the structure {source_face_name: target_face_name}")
+
+        for i, target_image in enumerate(image_generator):
+            # check if generator yields tuples (video, audio) or only images
+            audio = None
+            if isinstance(target_image, tuple) and len(target_image) == 2:
+                target_image, audio = target_image
+
+            try:
+                swapped = self.swap_pairs(
+                    swap_pairs=swap_pairs,
+                    image=target_image,
+                    enhance_face_model=enhance_face_model,
+                    threshold=recognition_threshold
+                )
+
+                if audio is not None:
+                    yield swapped, audio
+                    continue
+
+                yield swapped
+                continue
+            except Exception as e:
+                print(f"Error in swapping frame {i}: {e}. Skipping image")
+                if audio is not None:
+                    yield target_image, audio
+                    continue
+
+                yield np.array(target_image)
 
     def calculate_face_distances(
             self: Face2Face,
@@ -127,7 +174,7 @@ class _FaceRecognition:
         """
         An embedding can store multiple faces. This function loads only the first face.
         :param embeddings: the embeddings
-        :return: the { face_name: first_face_embedding }
+        :return: the { faces: first_face_embedding }
         """
         return {
             face_name: face[0] if isinstance(face, list) else face
