@@ -11,8 +11,8 @@ For example, you can swap your face with Mona Lisa or your favorite celebrity.
 With this repository you can:
 
 - [Swap faces from one image to another](#swap-faces-from-one-image-to-another). 
-- [Swap faces in videos](#swap-faces-in-videos).
-- [Face embeddings](#face-swapping-with-saved-reference-faces): Create face embeddings. With these embeddings you can later swap faces just by using the name.
+- [Swap faces in images and videos](#face-swapping-with-face-embeddings).
+- [Face embeddings](#face-swapping-with-face-embeddings): Create face embeddings. With these embeddings you can later swap faces just by using the name.
 - [Face restoration](#face-enhancing): Enhance image quality of a portrait with a face enhancer model.
 - Identify faces with face-recognition
 - [Run face swapping as a service](docs/WebService.md).
@@ -30,15 +30,14 @@ The endpoint allows you to easily deploy face swapping, recognition and restorat
 | <img src="docs/example_face_swap.jpg" height="250px"/> | <img src="docs/example_multi_swap.jpg" height="250px" />  |
 
 
-
-| [Video-swapping](#swap-faces-in-videos)                                                                 | [Video-Swapping with face-recognition](#swap-faces-in-videos)                                                                              | 
+| [Video-swapping](#face-swapping-with-face-embeddings)                                                                 | [Video-Swapping with face-recognition](#swap-faces-in-videos)                                                                              | 
 |---------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
 | <a href="https://www.youtube.com/watch?v=dE-d8DIndco"><img src="docs/caprified.png" height="250" /></a> | <a href="https://www.youtube.com/watch?v=7l-3UAWh8Pw"><img src="docs/trump_fighting_assassins.png" height="250" /></a> |   
 
 
-| [Face restoration](#face-enhancing)                        | [Face-Swap with face-recognition](#face-swapping-with-face-recognition-swap-pairs ) |
-|------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| <img src="docs/face_restoration_gpen.PNG" height="250px"/> | <img src="docs/swap_with_recognition.jpg" height="250px"/>                          |
+| [Face restoration](#face-enhancing)                        | [Face-Swap with face-recognition](#face-swapping-with-face-embeddings) |
+|------------------------------------------------------------|------------------------------------------------------------------------------------|
+| <img src="docs/face_restoration_gpen.PNG" height="250px"/> | <img src="docs/swap_with_recognition.jpg" height="250px"/>                         |
 
 
 # Setup
@@ -89,7 +88,7 @@ Create a face embedding with the add_face function reuse those embeddings later.
 ```python
 # create a face embedding and save it to disk
 embedding = f2f.add_face("my_new_face", "path/to/my_img_or_video.mp4", save=True)
-# Swap all faces in the target image with the face(s) in the face embedding
+# Swap all faces in the image or video with the face(s) in the face embedding
 swapped = f2f.swap(media="path/to/my_img_or_video.jpg", faces="my_new_face")
 ```
 If argument save=true is set, the face embedding is persisted and the f2f.swap function can be used later with the same face_name, even after restarting the project.
@@ -99,9 +98,11 @@ If argument save=true is set, the face embedding is persisted and the f2f.swap f
 
 After an embedding was created, we can recognize / identify those persons.
 Then the identified persons can specifically be swapped with defined swap pairs.
+If the faces argument is provided as dict, the swap function recognizes and swaps the face-pairs correspondingly.
 
 ```python
 # Swap faces with defined swap pairs
+# This function will swap the faces of trump with hagrid and biden with ron.
 # assumption the faces [trump, hagrid, biden, ron] are already added with f2f.add_face
 swapped = f2f.swap(
   media="path/to/my_img_or_video.mp4", 
@@ -111,8 +112,6 @@ swapped = f2f.swap(
   }
 )
 ```
-This function will swap the faces of trump with hagrid and biden with ron.
-Therefore it first recognizes the faces in the target image and then swaps them with the defined swap pairs.
 
 
 ## Face swapping with a generator
