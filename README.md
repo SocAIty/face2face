@@ -12,7 +12,7 @@ With this repository you can:
 
 - [Swap faces from one image to another](#swap-faces-from-one-image-to-another). 
 - [Swap faces in videos](#swap-faces-in-videos).
-- [Face embeddings](#face-swapping-with-saved-reference-faces). Create face embeddings. With these embeddings you can later swap faces just by using the name.
+- [Face embeddings](#face-swapping-with-saved-reference-faces): Create face embeddings. With these embeddings you can later swap faces just by using the name.
 - [Face restoration](#face-enhancing): Enhance image quality of a portrait with a face enhancer model.
 - Identify faces with face-recognition
 - [Run face swapping as a service](docs/WebService.md).
@@ -68,7 +68,7 @@ We provide two ways to use the face swapping functionality.
 2. [By deploying and calling the web service](#docs/WebService.md)
 
 
-## Inference from script
+# Inference from script
 Use the Face2Face class to swap faces from one image to another.
 First create an instance of the class.
 
@@ -79,22 +79,23 @@ f2f = Face2Face(device_id=0)
 With the device_id setting you can set the GPU device id. This also allows to run face2face in multiple processes on
 different GPUs.
 
-### Swap faces from one image to another
+## Swap faces from one image to another
 ```python
 swapped_img = f2f.swap_img_to_img("path/to/src.jpg", "path/to/target.jpg")
 ```
-### Face swapping with saved reference faces
+## Face swapping with face embeddings
 
-Create a face embedding with the add_reference_face function and later swap faces with the swap_from_reference_face function.
-If argument save=true is set, the face embedding is persisted and the f2f.swap_from_reference_face function can be used later with the same face_name, even after restarting the project.
-
+Create a face embedding with the add_face function reuse those embeddings later.
 ```python
+# create a face embedding and save it to disk
 embedding = f2f.add_face("my_new_face", "path/to/my_img_or_video.mp4", save=True)
 # Swap all faces in the target image with the face(s) in the face embedding
 swapped = f2f.swap(media="path/to/my_img_or_video.jpg", faces="my_new_face")
 ```
+If argument save=true is set, the face embedding is persisted and the f2f.swap function can be used later with the same face_name, even after restarting the project.
 
-### Face swapping with face recognition (swap pairs)
+
+## Face swapping with face recognition (swap pairs)
 
 After an embedding was created, we can recognize / identify those persons.
 Then the identified persons can specifically be swapped with defined swap pairs.
@@ -114,14 +115,13 @@ This function will swap the faces of trump with hagrid and biden with ron.
 Therefore it first recognizes the faces in the target image and then swaps them with the defined swap pairs.
 
 
-### Face swapping with a generator
+## Face swapping with a generator
 Iteratively swapping from a list of images
 
 ```python
 def my_image_generator():
   for i in range(100):
     yield cv2.imread(f"image_{i}.jpg")
-
 
 # for swapping to always the same face
 for swapped_img in f2f.swap_to_face_generator(faces="my_embedding", target_img_generator=my_image_generator()):
@@ -135,7 +135,7 @@ for swapped_img in f2f.swap_pairs_generator(target_img_generator=my_image_genera
 
 ```
 
-### Face enhancing
+## Face enhancing
 
 The roop (inswapper) model operates on low resolution - what can harm the result face quality. 
 However, there exist AI models, which can enhance the face quality by upscaling the image.
@@ -148,7 +148,7 @@ swapped_img = f2f.swap(media="path/to/my_img_or_video.mp4", enhance_face_model='
 ```
 The corresponding model is automatically downloaded and used when enhance_faces is set to True.
 
-#### Face-enhancing without face-swapping
+### Face-enhancing without face-swapping
 
 Alternatively you can enhance faces directly without applying a swap. 
 ```python
