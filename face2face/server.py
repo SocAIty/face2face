@@ -38,7 +38,7 @@ def add_face(face_name: str, image: ImageFile = None, save: bool = True):
 @app.task_endpoint("/swap", queue_size=100)
 def swap(
     faces: Union[str, dict, list],
-    media: Union[ImageFile, VideoFile] = None,
+    media: ImageFile, #Union[ImageFile, VideoFile] = None,
     enhance_face_model: str = 'gpen_bfr_512'
 ):
     swapped_media = f2f.swap(faces=faces, media=media, enhance_face_model=enhance_face_model)
