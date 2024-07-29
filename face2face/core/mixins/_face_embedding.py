@@ -19,7 +19,7 @@ from face2face.core.modules.storage.f2f_loader import load_reference_face_from_f
 from face2face.core.modules.storage.file_writable_face import FileWriteableFace
 from face2face.settings import REF_FACES_DIR
 from face2face.core.modules.utils.utils import encode_path_safe
-
+from face2face.core.modules.utils.utils import load_image
 
 class _FaceEmbedding:
     def load_face(self: Face2Face, face_name: str) -> Union[List[Face], None]:
@@ -82,21 +82,21 @@ class _FaceEmbedding:
     def add_face(
             self: Face2Face,
             face_name: str,
-            ref_image: Union[np.array, str, ImageFile],
+            image: Union[np.array, str, ImageFile],
             save: bool = False
     ) -> Tuple[str, np.array]:
         """
         Add a reference face to the face swapper. The face swapper will use this face to swap it to other images.
         Use the method swap_from_reference_face to swap the reference face to other images.
         :param face_name: how the reference face is called
-        :param ref_image: the image to get the faces from
+        :param image: the image to get the faces from
         :param save: if True, the reference face will be saved to the _face_embeddings folder and available next startup
         :return: the savely encoded face name and the reference face
         """
-        ref_image = ImageFile().from_any(ref_image)
+        image = load_image(image)
         face_name = encode_path_safe(face_name)
 
-        self._face_embeddings[face_name] = self.detect_faces(ref_image)
+        self._face_embeddings[face_name] = self.detect_faces(image)
         # make faces pickle able by converting them to FileWriteableFace
         save_able_ref_faces = [FileWriteableFace(face) for face in self._face_embeddings[face_name]]
 

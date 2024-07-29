@@ -27,7 +27,7 @@ class _Video_Swap:
         :param enhance_face_model: the face enhancement model to use. Use None for no enhancement
         :param include_audio: if True, the audio will be included in the output video
         """
-        video = VideoFile().from_file(video)
+        video = VideoFile().from_any(video)
         if isinstance(faces, dict):
             return self.swap_pairs_in_video(
                 swap_pairs=faces, video=video, enhance_face_model=enhance_face_model, include_audio=include_audio
@@ -53,14 +53,15 @@ class _Video_Swap:
         :param include_audio: if True, the audio will be included in the output video
         :param enhance_face_model: the face enhancement model to use. Use None for no enhancement
         """
-        video = VideoFile().from_file(video)
+        video = VideoFile().from_any(video)
         if not isinstance(video, VideoFile):
             raise ValueError("Video must be a path or a VideoFile object")
 
         gen = video.to_video_stream(include_audio=include_audio)
+        swap_gen = self.swap_to_face_generator(faces=faces, image_generator=gen, enhance_face_model=enhance_face_model)
 
         new_video = VideoFile().from_video_stream(
-            video_audio_stream=self.swap_to_face_generator(face_name, gen, enhance_face_model=enhance_face_model),
+            video_audio_stream=swap_gen,
             frame_rate=video.frame_rate,
             audio_sample_rate=video.audio_sample_rate
         )
@@ -82,7 +83,7 @@ class _Video_Swap:
         :param recognition_threshold: the threshold for face-recognition. Lower value -> more false positives
         :param include_audio: if True, the audio will be included in the output video
         """
-        video = VideoFile().from_file(video)
+        video = VideoFile().from_any(video)
         if not isinstance(video, VideoFile):
             raise ValueError("Video must be a path or a VideoFile object")
 

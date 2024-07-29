@@ -15,7 +15,7 @@ readme = "README.md"
 dependencies = [
     'insightface==0.7.3',
     'onnxruntime-gpu==1.15.1',
-    'media-toolkit[VideoFile]>=0.0.7',
+    'media-toolkit[VideoFile]>=0.0.9',
 ]
 
 [project.urls]

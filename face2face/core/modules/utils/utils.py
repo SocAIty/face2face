@@ -2,25 +2,29 @@ import re
 import os
 import urllib
 from typing import Union
-import mimetypes
 import numpy as np
 import cv2
 
 import unicodedata
 import glob
 from face2face.model_definitions import SWAPPER_MODELS, FACE_ENHANCER_MODELS
+from media_toolkit import ImageFile
 
 
-#def load_image(img: Union[np.array, str]):
-#    if isinstance(img, np.ndarray):
-#        return img
-#    if isinstance(img, str) and os.path.isfile(img) and os.path.exists(img):
-#        img = cv2.imread(img)
-#        if img is None:
-#            raise ValueError(f"Could not load image {img}. Check file path")
-#    else:
-#        raise ValueError(f"Could not load image {img}. Check inputs")
-#    return img
+def load_image(img: Union[str, np.array, ImageFile]):
+    try:
+        image = ImageFile().from_any(img).to_np_array()
+        # convert to cv2 BGR image
+        # case 4 channels
+        if len(image.shape) == 3 and image.shape[2] == 4:
+            image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
+        # case 1 channel
+        elif len(image.shape) == 2:
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    except Exception as e:
+        raise ValueError(f"Could not load image {img}. Error: {e}")
+
+    return image
 
 
 def encode_path_safe(filename: str, allow_unicode=False):

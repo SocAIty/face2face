@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
 # other imports
+from face2face.core.modules.utils.utils import load_image
 from insightface.app.common import Face
 from media_toolkit import ImageFile
 import numpy as np
@@ -52,9 +53,8 @@ class _ImageSwap:
         :param enhance_face_model: if str, the faces will be enhanced with the given face enhancer model.
             if none the faces will not be enhanced
         """
-        source_image = ImageFile().from_any(source_image).to_np_array()
-        target_image = ImageFile().from_any(target_image).to_np_array()
-
+        source_image = load_image(source_image)
+        target_image = load_image(target_image)
         # get the bounding box of the faces
         source_faces = self.detect_faces(source_image)
 

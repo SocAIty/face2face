@@ -15,6 +15,7 @@ from face2face.core.mixins._face_enhance import _FaceEnhancer
 from face2face.core.mixins._face_recognition import _FaceRecognition
 from face2face.core.mixins._video_swap import _Video_Swap
 
+from face2face.core.modules.utils.utils import load_image
 from face2face.core.modules.storage.f2f_loader import get_face_analyser
 from face2face.core.modules.utils.utils import download_model
 from face2face.settings import MODELS_DIR, REF_FACES_DIR, DEVICE_ID
@@ -57,7 +58,7 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
         self,
         media: Union[str, np.ndarray, tuple, List[str], ImageFile, VideoFile],
         faces: Union[str, dict, list, List[Face], Face, None] = None,
-        enhance_face_model: str = 'gpen_bfr_512',
+        enhance_face_model: Union[str, None] = 'gpen_bfr_512',
         include_audio: bool = True
     ) -> Union[np.array, list, VideoFile]:
         """
@@ -90,7 +91,9 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
 
         # convert to image or video file
         file = None
-        if type(media) in [str, ImageFile, VideoFile]:
+        if type(media) in [ImageFile, VideoFile]:
+            file = media
+        elif isinstance(media, str):
             file = media_from_file(media)
         elif isinstance(media, np.ndarray):
             file = ImageFile().from_np_array(media)
@@ -109,7 +112,7 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
         """
         get faces from left to right by order
         """
-        image = ImageFile().from_any(image).to_np_array()
+        image = load_image(image)
         try:
             face = self._face_analyser.get(image)
             return sorted(face, key=lambda x: x.bbox[0])

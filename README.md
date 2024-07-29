@@ -13,15 +13,16 @@ With this repository you can:
 - [Swap faces from one image to another](#swap-faces-from-one-image-to-another). 
 - [Swap faces in images and videos](#face-swapping-with-face-embeddings).
 - [Face embeddings](#face-swapping-with-face-embeddings): Create face embeddings. With these embeddings you can later swap faces just by using the name.
+- [With face recognition](#face-swapping-with-face-embeddings): Swap faces with face recognition.
 - [Face restoration](#face-enhancing): Enhance image quality of a portrait with a face enhancer model.
 - Identify faces with face-recognition
 - [Run face swapping as a service](docs/WebService.md).
 
 
-This is a one shot model; for this reason only one face is needed to swap. It should work for all kinds of content, also for anime.
+This is a one shot face-swap model; for this reason only one face is needed to swap. It should work for all kinds of content, also for anime.
 The face swapping model itself was created by [Insightface](https://github.com/deepinsight/insightface)
 
-We provide the face swapping functionality as SDK and as a convenient web (openAPI) API with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
+We provide the face swapping functionality as SDK and as a convenient [web (openAPI) API](docs/WebService.md) with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
 The endpoint allows you to easily deploy face swapping, recognition and restoration as a service.
 
 ## Example swaps

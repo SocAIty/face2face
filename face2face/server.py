@@ -1,4 +1,6 @@
 import argparse
+from typing import Union
+
 import fastapi
 
 from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile
@@ -23,25 +25,34 @@ app = FastTaskAPI(
     ),
 )
 
-@app.task_endpoint("/swap_one", queue_size=100)
-def swap_one(source_img: ImageFile, target_img: ImageFile, enhance_face_model: str = 'gpen_bfr_512'):
+@app.task_endpoint("/swap_img_to_img", queue_size=100)
+def swap_img_to_img(source_img: ImageFile, target_img: ImageFile, enhance_face_model: str = 'gpen_bfr_512'):
     swapped_img = f2f.swap_img_to_img(np.array(source_img), np.array(target_img), enhance_face_model=enhance_face_model)
     return ImageFile(file_name="swapped_img.png").from_np_array(swapped_img)
 
 @app.task_endpoint("/add_face", queue_size=100)
-def add_reference_face(face_name: str, source_img: ImageFile = None, save: bool = True):
-    face_name, face_embedding = f2f.add_face(face_name, np.array(source_img), save=save)
+def add_face(face_name: str, image: ImageFile = None, save: bool = True):
+    face_name, face_embedding = f2f.add_face(face_name=face_name, image=image, save=save)
     return MediaFile(file_name=f"{face_name}.npz").from_bytesio(face_embedding)
 
-@app.task_endpoint("/swap_to_face", queue_size=100)
-def swap_to_face(face_name: str, target_img: ImageFile = None, enhance_face_model: str = 'gpen_bfr_512'):
-    swapped_img = f2f.swap_to_faces(face_name, np.array(target_img), enhance_face_model=enhance_face_model)
-    return ImageFile(file_name=f"swapped_to_{face_name}.png").from_np_array(swapped_img)
+@app.task_endpoint("/swap", queue_size=100)
+def swap(
+    faces: Union[str, dict, list],
+    media: Union[ImageFile, VideoFile] = None,
+    enhance_face_model: str = 'gpen_bfr_512'
+):
+    swapped_media = f2f.swap(faces=faces, media=media, enhance_face_model=enhance_face_model)
 
-@app.task_endpoint("/swap_pairs", queue_size=100)
-def swap_pairs(image: ImageFile, swap_pairs: dict, enhance_face_model: str = 'gpen_bfr_512'):
-    swapped_img = f2f.swap_pairs(image=np.array(image), swap_pairs=swap_pairs, enhance_face_model=enhance_face_model)
-    return ImageFile(file_name="swapped_img.png").from_np_array(swapped_img)
+    if isinstance(swapped_media, np.ndarray):
+        return ImageFile(file_name="swapped.png").from_np_array(swapped_media)
+    #elif isinstance(swapped_media, list):
+    #    return [ImageFile(file_name="swapped.png").from_np_array(img) for img in swapped_media]
+    # ToDo: re-add progress bar for video files. But maybe more under the hood
+    #elif isinstance(swapped_media, VideoFile):
+    #    return VideoFile
+
+    return swapped_media
+
 
 @app.task_endpoint("/swap_video", queue_size=1)
 def swap_video(
@@ -90,11 +101,6 @@ def swap_video(
         audio_sample_rate=target_video.audio_sample_rate
     )
     return output_video
-
-@app.task_endpoint("/swap_pairs_in_video", queue_size=100)
-def swap_pairs_in_video(video: VideoFile, swap_pairs: dict, enhance_face_model: str = 'gpen_bfr_512'):
-    swapped_video = f2f.swap_pairs_in_video(video=video, swap_pairs=swap_pairs, enhance_face_model=enhance_face_model)
-    return swapped_video
 
 
 def start_server(port: int = PORT):

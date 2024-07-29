@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
 # normal imports
+from face2face.core.modules.utils.utils import load_image
 from collections import OrderedDict
 from insightface.app.common import Face
 import numpy as np
@@ -31,7 +32,7 @@ class _FaceRecognition:
         :param threshold: the threshold distance to recognize a face
         :return: A list with tuples in form [(recognized_face_name, dist, detected_face_in_image), ... ]
         """
-        image = ImageFile().from_any(image)
+        image = load_image(image)
         detected_faces = self.detect_faces(image)
 
         # Load reference faces
@@ -64,7 +65,7 @@ class _FaceRecognition:
         2. Call the swap function with the target faces.
 
         """
-        image = ImageFile().from_any(image)
+        image = load_image(image)
 
         # recognize the faces of first swap partners in the image
         recognized_partner_faces = self.face_recognition(
