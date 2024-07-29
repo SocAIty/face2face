@@ -135,9 +135,10 @@ def enhance_face(
         temp_vision_frame: np.array,
         model='gfpgan_1.4'
 ) -> np.array:
-    model_template = get_model_config(model).get('template')
-    model_size = get_model_config(model).get('size')
-    model_path = get_model_config(model).get('path')
+    config = get_model_config(model)
+    model_template = config.get('template')
+    model_size = config.get('size')
+    model_path = config.get('path')
 
     landmark = target_face.get("kps") # get('landmark_2d_106')
 

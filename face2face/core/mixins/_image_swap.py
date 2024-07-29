@@ -5,7 +5,6 @@ import copy
 from typing import TYPE_CHECKING, Union, List, Dict
 
 from face2face.core.modules.face_enhance.face_enhancer import enhance_face
-from face2face.core.modules.utils.utils import download_model
 
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
@@ -121,10 +120,6 @@ class _ImageSwap:
         if target_faces is None or len(target_faces) == 0:
             print(f"No face found in image. Return image as is")
             return image
-
-        # make sure face enhance model is downloaded
-        if enhance_face_model is not None:
-            download_model(enhance_face_model)
 
         result = copy.deepcopy(image)
 
