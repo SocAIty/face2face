@@ -6,11 +6,8 @@
 
 If not yet installed use `pip install socaity-face2face[full]` to install the module.
 
-1. Start the server by running the provided .bat file "start_server.bat" 
-   2. or by using `python face2face/server.py --port 8020` make sure the python PYTHONPATH is set to the root of this repository.
-   3. or if module was installed via pypi by running `from face2face.server import start_server` and then `start_server(port=8020)`
-2. To test the server, open `http://localhost:8020/docs` in your browser. You should see the openapi documentation.
-
+Start the server by running the provided .bat file "start_server.bat" 
+by using `python -m face2face.server` make sure the python PYTHONPATH is set to the root of this repository.
 
 
 Note: The first time you start the server, it will download the models. This can take a while.

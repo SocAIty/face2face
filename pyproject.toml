@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "socaity-face2face"
-version = "0.0.6"
+version = "0.0.7"
 description="Swap faces from one image to another. Create face embeddings. Integrate into hosted environments."
 requires-python = ">=3.8"
 authors = [
@@ -15,7 +15,7 @@ readme = "README.md"
 dependencies = [
     'insightface==0.7.3',
     'onnxruntime-gpu==1.15.1',
-    'media-toolkit[VideoFile]>=0.0.9',
+    "media-toolkit[VideoFile]>=0.1.1"
 ]
 
 [project.urls]
@@ -24,5 +24,5 @@ Repository = "https://github.com/SocAIty/face2face"
 
 [project.optional-dependencies]
 full = [
-    "fast-task-api[full]>=0.0.4",
+    "fast-task-api[full]>=0.0.6",
 ]

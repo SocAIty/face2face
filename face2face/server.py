@@ -1,30 +1,23 @@
-import argparse
 from typing import Union
 
 from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile
 
 import numpy as np
 
-from face2face.settings import PORT
+
 from face2face.core.face2face import Face2Face
 from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
 
-try:
-    import fastapi
-    fapi_app = fastapi.FastAPI(
-        title="Face2Face service",
-        summary="Swap faces from images and videos. Create face embeddings.",
-        version="0.0.6",
-        contact={
-            "name": "SocAIty",
-            "url": "https://github.com/SocAIty",
-        }
-    )
-except ImportError:
-    fapi_app = None
 
 f2f = Face2Face()
-app = FastTaskAPI(app=fapi_app)
+app = FastTaskAPI(
+    title="Face2Face service",
+    summary="Swap faces from images and videos. Create face embeddings.",
+    version="0.0.6",
+    contact={
+        "name": "SocAIty",
+            "url": "https://github.com/SocAIty",
+    })
 
 @app.task_endpoint("/swap_img_to_img", queue_size=100)
 def swap_img_to_img(source_img: ImageFile, target_img: ImageFile, enhance_face_model: str = 'gpen_bfr_512'):
@@ -103,13 +96,6 @@ def swap_video(
     )
     return output_video
 
-
-def start_server(port: int = PORT):
-    app.start(port=port)
-
 # start the server on provided port
 if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--port", type=int, default=PORT)
-    args = arg_parser.parse_args()
-    start_server(port=args.port)
+    app.start()
