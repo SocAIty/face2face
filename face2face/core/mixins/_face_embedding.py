@@ -17,7 +17,7 @@ from insightface.app.common import Face
 
 from face2face.core.modules.storage.f2f_loader import load_reference_face_from_file
 from face2face.core.modules.storage.file_writable_face import FileWriteableFace
-from face2face.settings import REF_FACES_DIR
+from face2face.settings import EMBEDDINGS_DIR
 from face2face.core.modules.utils.utils import encode_path_safe
 from face2face.core.modules.utils.utils import load_image
 
@@ -105,10 +105,10 @@ class _FaceEmbedding:
         np.save(virtual_file, arr=save_able_ref_faces, allow_pickle=True)
         virtual_file.seek(0)
         if save:
-            if not os.path.isdir(REF_FACES_DIR):
-                os.makedirs(REF_FACES_DIR)
+            if not os.path.isdir(EMBEDDINGS_DIR):
+                os.makedirs(EMBEDDINGS_DIR)
 
-            filename = os.path.join(REF_FACES_DIR, f"{face_name}.npz")
+            filename = os.path.join(EMBEDDINGS_DIR, f"{face_name}.npz")
             if os.path.isfile(filename):
                 print(f"Reference face {face_name} already exists. Overwriting.")
 

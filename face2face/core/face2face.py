@@ -18,7 +18,7 @@ from face2face.core.mixins._video_swap import _Video_Swap
 from face2face.core.modules.utils.utils import load_image
 from face2face.core.modules.storage.f2f_loader import get_face_analyser
 from face2face.core.modules.utils.utils import download_model
-from face2face.settings import MODELS_DIR, REF_FACES_DIR, DEVICE_ID
+from face2face.settings import MODELS_DIR, EMBEDDINGS_DIR, DEVICE_ID
 
 
 class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _FaceEnhancer):
@@ -49,7 +49,7 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
         # face swapper has the option to swap images from previously stored faces as embeddings
         # they dict has structure {faces: face_embedding }
         if face_embedding_folder is None:
-            face_embedding_folder = REF_FACES_DIR
+            face_embedding_folder = EMBEDDINGS_DIR
 
         self._face_embedding_folder = face_embedding_folder
         self._face_embeddings = {}
