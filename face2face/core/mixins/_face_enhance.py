@@ -37,3 +37,4 @@ class _FaceEnhancer:
         download_model(model)
 
         return enhance_face(target_face=target_face, temp_vision_frame=image, model=model)
+

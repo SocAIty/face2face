@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
 # other imports
-from face2face.core.modules.utils.utils import load_image
+from face2face.core.modules.utils.utils import load_image, download_model
 from insightface.app.common import Face
 from media_toolkit import ImageFile
 import numpy as np
@@ -141,6 +141,7 @@ class _ImageSwap:
             )
             if enhance_face_model is not None:
                 try:
+                    download_model(enhance_face_model)  # make sure face enhance model is downloaded
                     result = enhance_face(
                         target_face=target_faces[target_index], temp_vision_frame=result, model=enhance_face_model
                     )
