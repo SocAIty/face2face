@@ -80,30 +80,37 @@ class _FaceEmbedding:
         return self._face_embeddings
 
     def add_face(
-            self: Face2Face,
-            face_name: str,
-            image: Union[np.array, str, ImageFile],
-            save: bool = False
-    ) -> Tuple[str, np.array]:
-        """
-        Add a reference face to the face swapper. The face swapper will use this face to swap it to other images.
-        Use the method swap_from_reference_face to swap the reference face to other images.
-        :param face_name: how the reference face is called
-        :param image: the image to get the faces from
-        :param save: if True, the reference face will be saved to the _face_embeddings folder and available next startup
-        :return: the savely encoded face name and the reference face
-        """
+        self: Face2Face,
+        face_name: str,
+        image: Union[np.array, str, ImageFile],
+        save: bool = False
+) -> Tuple[str, np.array]:
+    """
+    Add a reference face to the face swapper. This face will be used for swapping in other images.
+    
+    :param face_name: The name for the reference face.
+    :param image: The image from which to extract faces (can be a numpy array, file path, or ImageFile).
+    :param save: If True, the reference face will be saved to the _face_embeddings folder for future use.
+    :return: A tuple containing the safely encoded face name and the reference face.
+    :raises ValueError: If face detection fails to find any faces in the image.
+    """
+    try:
         image = load_image(image)
         face_name = encode_path_safe(face_name)
 
-        self._face_embeddings[face_name] = self.detect_faces(image)
-        # make faces pickle able by converting them to FileWriteableFace
-        save_able_ref_faces = [FileWriteableFace(face) for face in self._face_embeddings[face_name]]
+        detected_faces = self.detect_faces(image)
+        if not detected_faces:
+            raise ValueError(f"No faces detected in the provided image for {face_name}.")
 
-        # save face to virtual file
+        self._face_embeddings[face_name] = detected_faces
+        # Convert detected faces to FileWriteableFace
+        save_able_ref_faces = [FileWriteableFace(face) for face in detected_faces]
+
+        # Save face to virtual file
         virtual_file = BytesIO()
         np.save(virtual_file, arr=save_able_ref_faces, allow_pickle=True)
         virtual_file.seek(0)
+
         if save:
             if not os.path.isdir(EMBEDDINGS_DIR):
                 os.makedirs(EMBEDDINGS_DIR)
@@ -115,5 +122,7 @@ class _FaceEmbedding:
             with open(filename, "wb") as f:
                 f.write(virtual_file.getbuffer())
 
-        virtual_file.seek(0)
-        return face_name, virtual_file
+        return face_name, virtual_file.getvalue()
+    except Exception as e:
+        print(f"Error while adding face: {e}")
+        raise
