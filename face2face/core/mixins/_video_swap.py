@@ -1,6 +1,9 @@
 # avoid circular dependency but provide type hints
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union, List, Dict
+
+from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
+
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
@@ -17,7 +20,7 @@ class _Video_Swap:
             self: Face2Face,
             video: Union[str, VideoFile],
             faces: Union[str, dict, list, List[Face], Face],
-            enhance_face_model: str = 'gpen_bfr_2048',
+            enhance_face_model: Union[str, None] = None,
             include_audio: bool = True
     ):
         """
@@ -60,8 +63,11 @@ class _Video_Swap:
         gen = video.to_video_stream(include_audio=include_audio)
         swap_gen = self.swap_to_face_generator(faces=faces, image_generator=gen, enhance_face_model=enhance_face_model)
 
+        # allow tqdm to show better progress bar
+        streamer = SimpleGeneratorWrapper(swap_gen, length=video.frame_count)
+
         new_video = VideoFile().from_video_stream(
-            video_audio_stream=swap_gen,
+            video_audio_stream=streamer,
             frame_rate=video.frame_rate,
             audio_sample_rate=video.audio_sample_rate
         )
@@ -72,7 +78,7 @@ class _Video_Swap:
             swap_pairs: dict,
             video: Union[str, VideoFile],
             include_audio: bool = True,
-            enhance_face_model: Union[str, None] = 'gpen_bfr_256',
+            enhance_face_model: Union[str, None] = None,
             recognition_threshold: float = 0.5
     ):
         """
@@ -96,8 +102,11 @@ class _Video_Swap:
                 recognition_threshold=recognition_threshold
         )
 
+        # allow tqdm to show better progress bar
+        streamer = SimpleGeneratorWrapper(swapper_gen, length=video.frame_count)
+
         new_video = VideoFile().from_video_stream(
-            video_audio_stream=swapper_gen,
+            video_audio_stream=streamer,
             frame_rate=video.frame_rate,
             audio_sample_rate=video.audio_sample_rate
         )

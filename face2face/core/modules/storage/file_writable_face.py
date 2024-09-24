@@ -1,5 +1,7 @@
 import numpy as np
 from insightface.app.common import Face
+import os
+from io import BytesIO
 
 class FileWriteableFace(dict):
     """
@@ -43,3 +45,31 @@ class FileWriteableFace(dict):
             return pickle_safe_face
         f = Face(pickle_safe_face)
         return f
+
+    def to_file(self, file_path: str):
+        """
+        Save the face to a file.
+        """
+        # if file path is folder: add a default name
+        if os.path.isdir(file_path):
+            file_path = os.path.join(file_path, "face.npy")
+
+        if not file_path.endswith(".npy"):
+            file_path += ".npy"
+
+        # if file path doesn't exist, create it
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        # save to file
+        np.save(file_path, arr=[self], allow_pickle=True)
+
+        return file_path
+
+    def to_bytes_io(self):
+        """
+        Save the face to a BytesIO object.
+        """
+        bytes_io = BytesIO()
+        np.save(bytes_io, arr=[self], allow_pickle=True)
+        bytes_io.seek(0)
+        return bytes_io

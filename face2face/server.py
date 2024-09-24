@@ -28,7 +28,8 @@ def swap_img_to_img(source_img: ImageFile, target_img: ImageFile, enhance_face_m
 @app.task_endpoint("/add_face", queue_size=100)
 def add_face(face_name: str, image: ImageFile = None, save: bool = True):
     face_name, face_embedding = f2f.add_face(face_name=face_name, image=image, save=save)
-    return MediaFile(file_name=f"{face_name}.npz").from_bytesio(face_embedding)
+    bytes_io = face_embedding.to_bytes_io()
+    return MediaFile(file_name=f"{face_name}.npy").from_bytesio(bytes_io)
 
 @app.task_endpoint("/swap", queue_size=100)
 def swap(

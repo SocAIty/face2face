@@ -103,7 +103,7 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
             return self.swap_image(image=file, faces=faces, enhance_face_model=enhance_face_model)
         elif isinstance(file, VideoFile):
             return self.swap_video(
-                faces=faces, video=file, include_audio=include_audio
+                faces=faces, video=file, include_audio=include_audio, enhance_face_model=enhance_face_model
             )
 
         raise ValueError(f"Wrong file type {media}. Check input.")

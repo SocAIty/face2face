@@ -2,8 +2,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union, List, Dict
 
-from media_toolkit import ImageFile
-
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 

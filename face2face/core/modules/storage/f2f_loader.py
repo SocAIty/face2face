@@ -20,35 +20,31 @@ def get_face_analyser(model_path: str, providers, det_size=(320, 320)):
     return face_analyser
 
 
-def load_reference_face_from_file(face_embedding_file_path: str) -> Union[List[Face], None]:
+def load_reference_face_from_file(face_embedding_file_path: str) -> Face:
     """
     Load a reference face from a file.
     :param face_embedding_file_path: the file path of the reference face
     :return: the reference face
     """
     if not os.path.exists(face_embedding_file_path):
-        print(f"Reference face {face_embedding_file_path} not found.")
-        return None
+        raise ValueError(f"Reference face {face_embedding_file_path} not found.")
 
     try:
         # note: potential security issue, if the file was not created with face2face
         embedding = np.load(face_embedding_file_path, allow_pickle=True)
-        if len(embedding) > 0:
-            embedding = [FileWriteableFace.to_face(face) for face in embedding]
-
-        return embedding
+        return FileWriteableFace.to_face(embedding)
     except Exception as e:
-        print(f"Error loading reference face {face_embedding_file_path}: {e}")
+        raise f"Error loading reference face {face_embedding_file_path}: {e}"
 
 
 def load_reference_faces_from_folder(folder_path: str) -> dict:
     """
-    Load reference faces from a folder. The folder must contain .npz files with the reference faces.
+    Load reference faces from a folder. The folder must contain .npy files with the reference faces.
     The file name will be used as the reference face name.
     :param folder_path: the folder path
     :return:
     """
-    files = get_files_in_dir(folder_path, [".npz"])
+    files = get_files_in_dir(folder_path, [".npy"])
     reference_faces = {}
     for file in files:
         face_name = os.path.basename(file)[:-4]

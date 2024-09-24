@@ -69,7 +69,7 @@ class _ImageSwap:
     def swap_to_faces(
             self: Face2Face,
             faces: Union[str, list, Face, List[Face]],
-            image: Union[np.array, list],
+            image: Union[np.array, list, ImageFile],
             enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
         ) -> np.array:
         """
@@ -102,7 +102,7 @@ class _ImageSwap:
             self: Face2Face,
             source_faces: List[Face],
             target_faces: List[Face],
-            image: np.array,
+            image: Union[np.array, str, ImageFile],
             enhance_face_model: str = 'gpen_bfr_512'
     ) -> np.array:
         """
@@ -121,6 +121,8 @@ class _ImageSwap:
             print(f"No face found in image. Return image as is")
             return image
 
+        # make sure it is a numpy array
+        image = load_image(image)
         result = copy.deepcopy(image)
 
         # iter through all target faces and swap them with the source faces
