@@ -17,7 +17,8 @@ app = FastTaskAPI(
     contact={
         "name": "SocAIty",
             "url": "https://github.com/SocAIty",
-    })
+    }
+)
 
 @app.task_endpoint("/swap_img_to_img", queue_size=100)
 def swap_img_to_img(source_img: ImageFile, target_img: ImageFile, enhance_face_model: str = 'gpen_bfr_512'):

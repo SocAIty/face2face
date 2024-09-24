@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-*Please describe, what you'd like to do achieve.*
+**Please describe, what you'd like to do achieve.**
 A clear and concise description of what the problem is or what you like to do.
 
 **Describe the solution you'd like**
