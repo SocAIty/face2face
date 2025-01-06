@@ -141,7 +141,7 @@ class _ImageSwap:
                 source_face,
                 paste_back=True,
             )
-            if enhance_face_model is not None:
+            if enhance_face_model is not None and isinstance(enhance_face_model, str) and len(enhance_face_model) > 0:
                 try:
                     download_model(enhance_face_model)  # make sure face enhance model is downloaded
                     result = enhance_face(

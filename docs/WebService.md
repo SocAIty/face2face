@@ -39,7 +39,7 @@ For more settings and how to deploy the service check-out [FastTaskAPI](https://
 
 For example it allows you to deploy the service with [Runpod](https://runpod.io) out of the box.
 Checkout the [DOCKERFILE](DOCKERFILE) for runpod.
-
+To start fasttaskapi with runpod backend set the environment variable `FTAPI_BACKEND=runpod`.
 
 # Usage
 

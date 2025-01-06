@@ -47,7 +47,7 @@ class _Video_Swap:
             faces: str,
             video: Union[str, VideoFile],
             include_audio: bool = True,
-            enhance_face_model: str = 'gpen_bfr_2048'
+            enhance_face_model: Union[str, None] = None
         ):
         """
         Swaps the face of the target video to the face of the reference image.

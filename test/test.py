@@ -67,7 +67,7 @@ def test_video_face_swap():
     vf = VideoFile().from_file("test_media/test_video_1.mp4")
     #swapped = f2f.swap_to_face_in_video(face_name="caprio", video=vf)
     swapped = f2f.swap(media=vf, faces="caprio", enhance_face_model=None)
-    swapped.save(f"{output_folder}/test_media/test_video_2_swapped_swapped_smithy.mp4")
+    swapped.save(f"{output_folder}/test_video_2_swapped_swapped_smithy.mp4")
 
 def test_multi_face_video_swap():
     # add ref face

@@ -1,3 +1,4 @@
+import os
 from typing import Union
 
 from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile
@@ -100,4 +101,6 @@ def swap_video(
 
 # start the server on provided port
 if __name__ == "__main__":
-    app.start()
+    # setting port to 8020 (referenced as so in socaity sdk for face2face) if not specified differently
+    port = int(os.environ.get("FTAPI_PORT", 8020))
+    app.start(port=port)
