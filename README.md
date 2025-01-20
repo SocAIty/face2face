@@ -87,13 +87,13 @@ swapped_img = f2f.swap_img_to_img("path/to/src.jpg", "path/to/target.jpg")
 
 Create a face embedding with the add_face function reuse those embeddings later.
 ```python
-# create a face embedding and save it to disk
+# create a face embedding and save it to disk. 
 embedding = f2f.add_face("my_new_face", "path/to/my_portrait_image.jpg", save=True)
 # Swap all faces in the image or video with the face(s) in the face embedding
 swapped = f2f.swap(media="path/to/my_img_or_video.jpg", faces="my_new_face")
 ```
 If argument save=true is set, the face embedding is persisted and the f2f.swap function can be used later with the same face_name, even after restarting the project.
-
+In case you provide an image with multiple persons, you can provide a list of names and an embedding for each person from left to right is created. 
 
 ## Face swapping with face recognition (swap pairs)
 

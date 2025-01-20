@@ -115,7 +115,7 @@ class _FaceEmbedding:
         if len(face_name) > len(detected_faces):
             print(f"Not enough faces in the image for all provided face names. "
                   f"Only {len(detected_faces)} faces found. Skipping the rest")
-            face_name = [face_name[i] for i in range(len(detected_faces))]
+            face_name = face_name[:len(detected_faces)]
 
         face = None
         for i, name in enumerate(face_name):
