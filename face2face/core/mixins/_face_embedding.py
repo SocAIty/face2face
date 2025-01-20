@@ -75,51 +75,69 @@ class _FaceEmbedding:
 
     def add_face(
         self: Face2Face,
-        face_name: str,
+        face_name: Union[str, List[str]],
         image: Union[np.array, str, ImageFile],
         save: bool = False
-    ) -> Tuple[str, FileWriteableFace]:
+    ) -> Union[Tuple[str, FileWriteableFace], dict]:
         """
-        Add a reference face to the face swapper. This face will be used for swapping in other images.
+        Add one or multiple reference face(s) to the face swapper. This face(s) can be used for swapping in other images.
 
-        :param face_name: The name for the reference face
-        :param image: The image from which to extract face (can be a numpy array, file path, or ImageFile).
+        :param face_name: The name for the reference face.
+            In case you provide a list of face names, an embedding is stored for each face from left to right in the provided image.
+
+        :param image: The image from which to extract the face(s) (can be a numpy array, file path, or ImageFile).
+            If there are multiple faces in the image, an embedding will be created for each name from left to right.
+            If you only provide one name, only the first face will be stored.
         :param save:
             If True, the reference face will be saved to the _face_embeddings folder for future use.
             If False, the reference face will only be stored in memory.
         :return: A tuple containing the safely encoded face name and the reference face.
-        :raises ValueError: If | detected faces | != 1
+            In case of multiple faces returns as dict {face_name: face_embedding}
         """
+
+
+        if isinstance(face_name, list) and len(face_name) == 0 or face_name is None:
+            raise ValueError("Please provide at least one face name.")
+
         try:
             image = load_image(image)
-
             detected_faces = self.detect_faces(image)
+        except Exception as e:
+            raise ValueError(f"Could not load image or face detection failed. Error: {e}")
 
-            # Deal with errors of too much or too few faces in the reference image
-            if not detected_faces:
-                raise ValueError(f"No faces detected in the provided image for {face_name}.")
+        # Deal with errors of too much or too few faces in the reference image
+        if not detected_faces:
+            raise ValueError(f"No faces detected in the provided image for {face_name}.")
 
-            if len(detected_faces) > 1:
-                raise ValueError(f"Multiple faces detected in the provided image for {face_name}.")
+        if not isinstance(face_name, list):
+            face_name = [face_name]
 
+        if len(face_name) > len(detected_faces):
+            print(f"Not enough faces in the image for all provided face names. "
+                  f"Only {len(detected_faces)} faces found. Skipping the rest")
+            face_name = [face_name[i] for i in range(len(detected_faces))]
+
+        face = None
+        for i, name in enumerate(face_name):
             face_name = encode_path_safe(face_name)
-            face = detected_faces[0]
+            face = detected_faces[i]
             # Store the detected faces in memory
             self._face_embeddings[face_name] = face
 
             # store the detected faces on disc
             face = FileWriteableFace(face)
-
             # Save face to virtual file
             if save:
                 os.makedirs(EMBEDDINGS_DIR, exist_ok=True)
                 filename = os.path.join(EMBEDDINGS_DIR, f"{face_name}.npy")
                 if os.path.isfile(filename):
                     print(f"Reference face {face_name} already exists. Overwriting.")
-
                 face.to_file(filename)
-
+        if len(face_name) > 1:
+            # Return a dict with the face names and embeddings
+            return {
+                name: self._face_embeddings[name]
+                for name in face_name
+            }
+        else:
             return face_name, face
-        except Exception as e:
-            print(f"Error while adding face: {e}")
-            raise
