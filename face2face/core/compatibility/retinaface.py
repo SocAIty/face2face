@@ -69,15 +69,15 @@ def distance2kps(points, distance, max_shape=None):
 
 
 class RetinaFace:
-    def __init__(self, model_file=None, session=None):
+    def __init__(self, model_file=None, providers=None):
         import onnxruntime
         self.model_file = model_file
-        self.session = session
+        self.session = None
         self.taskname = 'detection'
         if self.session is None:
             assert self.model_file is not None
             assert osp.exists(self.model_file)
-            self.session = onnxruntime.InferenceSession(self.model_file, None)
+            self.session = onnxruntime.InferenceSession(self.model_file, providers=providers)
         self.center_cache = {}
         self.nms_thresh = 0.4
         self.det_thresh = 0.5

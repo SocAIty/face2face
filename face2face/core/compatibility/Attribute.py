@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import division
 import numpy as np
 import cv2
@@ -6,10 +7,9 @@ import onnxruntime
 from face2face.core.compatibility import face_align
 
 class Attribute:
-    def __init__(self, model_file=None, session=None):
+    def __init__(self, model_file=None, providers=None):
         assert model_file is not None
         self.model_file = model_file
-        self.session = session
         find_sub = False
         find_mul = False
         model = onnx.load(self.model_file)
@@ -32,9 +32,8 @@ class Attribute:
             input_std = 128.0
         self.input_mean = input_mean
         self.input_std = input_std
-        #print('input mean and std:', model_file, self.input_mean, self.input_std)
-        if self.session is None:
-            self.session = onnxruntime.InferenceSession(self.model_file, None)
+
+        self.session = onnxruntime.InferenceSession(self.model_file, providers=providers)
         input_cfg = self.session.get_inputs()[0]
         input_shape = input_cfg.shape
         input_name = input_cfg.name

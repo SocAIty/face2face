@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import onnx
 import onnxruntime
 import cv2
@@ -6,26 +7,11 @@ from face2face.core.compatibility import face_align, transform
 import os
 import pickle
 
-#def get_object(name):
-#    path = "A:\\projects\\_face2face\\face2face\\face2face\\models\\insightface\\buffalo_l\\meanshape_68.pkl"
-#
-#
-#    #objects_dir = osp.join(Path(__file__).parent.absolute(), 'objects')
-#    #if not name.endswith('.pkl'):
-#    #    name = name+".pkl"
-#    #filepath = osp.join(objects_dir, name)
-#    #if not osp.exists(filepath):
-#    #    return None
-#    with open(path, 'rb') as f:
-#        obj = pickle.load(f)
-#    return obj
-
 
 class Landmark:
-    def __init__(self, model_file=None, session=None):
+    def __init__(self, model_file=None, providers=None):
         assert model_file is not None
         self.model_file = model_file
-        self.session = session
         find_sub = False
         find_mul = False
         model = onnx.load(self.model_file)
@@ -48,9 +34,8 @@ class Landmark:
             input_std = 128.0
         self.input_mean = input_mean
         self.input_std = input_std
-        #print('input mean and std:', model_file, self.input_mean, self.input_std)
-        if self.session is None:
-            self.session = onnxruntime.InferenceSession(self.model_file, None)
+
+        self.session = onnxruntime.InferenceSession(self.model_file, providers=providers)
         input_cfg = self.session.get_inputs()[0]
         input_shape = input_cfg.shape
         input_name = input_cfg.name
@@ -65,6 +50,7 @@ class Landmark:
         assert len(self.output_names)==1
         output_shape = outputs[0].shape
         self.require_pose = False
+        self.mean_lmk = None
         #print('init output_shape:', output_shape)
         if output_shape[1]==3309:
             self.lmk_dim = 3
@@ -84,7 +70,7 @@ class Landmark:
         if self.mean_lmk is not None:
             return self.mean_lmk
 
-        meanshape_68_path = os.join(os.dirname(self.model_file), 'meanshape_68.pkl')
+        meanshape_68_path = os.path.join(os.path.dirname(self.model_file), 'meanshape_68.pkl')
         with open(meanshape_68_path, 'rb') as f:
             obj = pickle.load(f)
 

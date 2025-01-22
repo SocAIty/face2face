@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This is a copy of the original implementation of insight Face class.
 Used to remove insightface dependencies.
@@ -14,10 +15,6 @@ class Face(dict):
             d.update(**kwargs)
         for k, v in d.items():
             setattr(self, k, v)
-        # Class attributes
-        #for k in self.__class__.__dict__.keys():
-        #    if not (k.startswith('__') and k.endswith('__')) and not k in ('update', 'pop'):
-        #        setattr(self, k, getattr(self, k))
 
     def __setattr__(self, name, value):
         if isinstance(value, (list, tuple)):

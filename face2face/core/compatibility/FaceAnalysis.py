@@ -15,16 +15,16 @@ import onnxruntime
 
 __all__ = ['FaceAnalysis']
 
-from insightface.model_zoo import ArcFaceONNX
-
+from face2face.core.compatibility.ArcFaceONNX import ArcFaceONNX
 from face2face.core.compatibility.Attribute import Attribute
 from face2face.core.compatibility.Face import Face
 from face2face.core.compatibility.Landmark import Landmark
 from face2face.core.compatibility.retinaface import RetinaFace
 
 
+
 class FaceAnalysis:
-    def __init__(self, model_dir: str, session):
+    def __init__(self, model_dir: str, providers=None):
 
         onnxruntime.set_default_logger_severity(3)
 
@@ -33,20 +33,20 @@ class FaceAnalysis:
         onnx_files = glob.glob(osp.join(model_dir, '*.onnx'))
         onnx_files = sorted(onnx_files)
         for onnx_file in onnx_files:
-            model = self._load_model(onnx_file, session)
+            model = self._load_model(onnx_file, providers)
             self.models[model.taskname] = model
 
         self.det_model = self.models['detection']
 
-    def _load_model(self, onnx_file: str, session):
+    def _load_model(self, onnx_file: str, providers):
         if "1k3d68" in onnx_file or "2d106det" in onnx_file:
-            return Landmark(model_file=onnx_file, session=session)
+            return Landmark(model_file=onnx_file, providers=providers)
         if "det_10g" in onnx_file:
-            return RetinaFace(model_file=onnx_file, session=session)
+            return RetinaFace(model_file=onnx_file, providers=providers)
         if "genderage" in onnx_file:
-            return Attribute(model_file=onnx_file, session=session)
+            return Attribute(model_file=onnx_file, providers=providers)
         if "w600k_r50" in onnx_file:
-            return ArcFaceONNX(model_file=onnx_file, session=session)
+            return ArcFaceONNX(model_file=onnx_file, providers=providers)
 
     def prepare(self, ctx_id, det_thresh=0.5, det_size=(640, 640)):
         self.det_thresh = det_thresh
