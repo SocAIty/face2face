@@ -1,12 +1,12 @@
 # ordinary imports
 from typing import List, Union
-import os
 import numpy as np
 
-import insightface
 import onnxruntime
-from insightface.app.common import Face
 
+from face2face.core.compatibility.Face import Face
+from face2face.core.compatibility.FaceAnalysis import FaceAnalysis
+from face2face.core.compatibility.INSwapper import INSwapper
 from face2face.core.mixins._image_swap import _ImageSwap
 from media_toolkit import media_from_file, VideoFile, ImageFile
 
@@ -16,9 +16,8 @@ from face2face.core.mixins._face_recognition import _FaceRecognition
 from face2face.core.mixins._video_swap import _Video_Swap
 
 from face2face.core.modules.utils.utils import load_image
-from face2face.core.modules.storage.f2f_loader import get_face_analyser
 from face2face.core.modules.utils.utils import download_model
-from face2face.settings import MODELS_DIR, EMBEDDINGS_DIR, DEVICE_ID
+from face2face.settings import EMBEDDINGS_DIR, DEVICE_ID
 
 
 class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _FaceEnhancer):
@@ -29,12 +28,12 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
             and models/face_enhancer/gfpgan_1.4.onnx
         :param inswapper_model_name:
         """
-        # download inswapper model (roop) if not existing
+        # download inswapper model (roop) if not existing and insightface models
         swapper_model_file_path = download_model("inswapper_128")
-        face_analyzer_models_path = os.path.join(MODELS_DIR, 'insightface')
+        face_analyiser_models_path = download_model("buffalo_l")
 
         self.providers = onnxruntime.get_available_providers()
-        # Setting GPU number
+        # Setting GPU number and creating onnx session
         if device_id is None:
             device_id = DEVICE_ID
 
@@ -42,9 +41,11 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
             self.providers.remove("CUDAExecutionProvider")
             self.providers.append(("CUDAExecutionProvider", {'device_id': device_id}))
             self.providers = [("CUDAExecutionProvider", {'device_id': device_id})]
+        onnx_session = onnxruntime.InferenceSession(swapper_model_file_path, providers=self.providers)
 
-        self._face_analyser = get_face_analyser(face_analyzer_models_path, self.providers)
-        self._face_swapper = insightface.model_zoo.get_model(swapper_model_file_path, providers=self.providers)
+        self._face_analyser = FaceAnalysis(model_dir=face_analyiser_models_path, session=onnx_session)
+        self._face_analyser.prepare(ctx_id=0, det_size=(320, 320))
+        self._face_swapper = INSwapper(model_file=swapper_model_file_path, session=onnx_session)
 
         # face swapper has the option to swap images from previously stored faces as embeddings
         # they dict has structure {faces: face_embedding }
@@ -53,6 +54,7 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
 
         self._face_embedding_folder = face_embedding_folder
         self._face_embeddings = {}
+
 
     def swap(
         self,

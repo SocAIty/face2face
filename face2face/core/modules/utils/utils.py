@@ -1,13 +1,14 @@
 import re
 import os
 import urllib
+import zipfile
 from typing import Union
 import numpy as np
 import cv2
 
 import unicodedata
 import glob
-from face2face.model_definitions import SWAPPER_MODELS, FACE_ENHANCER_MODELS
+from face2face.model_definitions import SWAPPER_MODELS, FACE_ENHANCER_MODELS, INSIGHT_FACE_MODELS
 from media_toolkit import ImageFile
 
 
@@ -76,7 +77,21 @@ def download_file(download_url: str, save_path: str):
         print(f'Downloading {download_url}')
         urllib.request.urlretrieve(download_url, save_path)
         print(f'Downloaded {download_url}')
+
     return save_path
+
+
+def extract_zip(zip_path: str, extract_path: str):
+    # only extract non existing files
+    with zipfile.ZipFile(zip_path, 'r') as zf:
+        # Iterate over the files in the zip archive
+        for file_name in zf.namelist():
+            # Define the full path for the file in the model folder
+            extracted_file_path = os.path.join(extract_path, file_name)
+            # Only extract if the file does not exist already
+            if not os.path.exists(extracted_file_path):
+                zf.extract(file_name, extract_path)
+    return extract_path
 
 
 def download_model(model_name: str) -> str:
@@ -87,13 +102,24 @@ def download_model(model_name: str) -> str:
     """
     # get model config
     model_config = SWAPPER_MODELS.get(model_name, None)
-    if model_config is None:
-        model_config = FACE_ENHANCER_MODELS.get(model_name, None)
+    model_config = model_config or FACE_ENHANCER_MODELS.get(model_name, None)
+    model_config = model_config or INSIGHT_FACE_MODELS.get(model_name, None)
+
     if model_config is None:
         raise ValueError(f"Model {model_name} not found")
 
     # download model
     download_url = model_config.get('url', None)
     save_path = model_config.get('path', None)
-    return download_file(download_url, save_path)
+    saved_model = download_file(download_url, save_path)
+
+    if not download_url or not download_url.endswith(".zip"):
+        return saved_model
+
+    # was provided as .zip file -> extract
+    model_folder = save_path.replace(".zip", "")
+    os.makedirs(model_folder, exist_ok=True)
+
+    return extract_zip(saved_model, model_folder)
+
 

@@ -1,23 +1,10 @@
-from typing import Union, List
 import os
 import numpy as np
-import insightface
-from insightface.app.common import Face
+# from insightface.app import FaceAnalysis
 
+from face2face.core.compatibility.Face import Face
 from face2face.core.modules.storage.file_writable_face import FileWriteableFace
 from face2face.core.modules.utils import get_files_in_dir
-
-
-def get_face_analyser(model_path: str, providers, det_size=(320, 320)):
-    """Get the face analyser model. The face analyser detects faces and extracts facial features."""
-    # load default face analyser if model_path is None
-    face_analyser = insightface.app.FaceAnalysis(
-        name="buffalo_l", root=f"{model_path}./checkpoints", providers=providers
-    )
-    face_analyser.prepare(ctx_id=0, det_size=det_size)
-    # TODO: load face analyser from file if model_path is not None
-
-    return face_analyser
 
 
 def load_reference_face_from_file(face_embedding_file_path: str) -> Face:

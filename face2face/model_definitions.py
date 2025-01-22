@@ -8,6 +8,14 @@ SWAPPER_MODELS = {
     }
 }
 
+INSIGHT_FACE_MODELS = {
+    "buffalo_l": {
+        'url': "https://socaityfiles.blob.core.windows.net/model-zoo/face2face/insightface/buffalo_l.zip",
+        # https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip
+        'path': f'{MODELS_DIR}/insightface/buffalo_l.zip',  # gets unpacked and downloaded to buffalo_l/*
+    }
+}
+
 FACE_ENHANCER_MODELS = {
     'gfpgan_1.4': {
             'url': 'https://socaityfiles.blob.core.windows.net/model-zoo/face2face/face_enhancer/gfpgan_1.4.onnx',
