@@ -89,11 +89,11 @@ def test_multi_face_video_swap():
 
 
 if __name__ == "__main__":
-    #test_multi_face_swap()
+    test_multi_face_swap()
     #test_multi_face_from_reference()
     #test_face_enhancing()
     #test_face_enhancing_single_face()
     #test_multi_face_video_swap()
     # test_embedding_face_swap()
-    test_video_face_swap()
+    # test_video_face_swap()
     a = 1

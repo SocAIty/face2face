@@ -25,7 +25,7 @@ def load_image(img: Union[str, np.array, ImageFile]):
     except Exception as e:
         raise ValueError(f"Could not load image {img}. Error: {e}")
 
-    return image
+    return np.array(image)
 
 
 def encode_path_safe(filename: str, allow_unicode=False):

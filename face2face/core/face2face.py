@@ -41,11 +41,13 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
             self.providers.remove("CUDAExecutionProvider")
             self.providers.append(("CUDAExecutionProvider", {'device_id': device_id}))
             self.providers = [("CUDAExecutionProvider", {'device_id': device_id})]
-        onnx_session = onnxruntime.InferenceSession(swapper_model_file_path, providers=self.providers)
 
-        self._face_analyser = FaceAnalysis(model_dir=face_analyiser_models_path, session=onnx_session)
+        #onnx_session = onnxruntime.InferenceSession(face_analyiser_models_path, providers=self.providers)
+        self._face_analyser = FaceAnalysis(model_dir=face_analyiser_models_path, session=None)
         self._face_analyser.prepare(ctx_id=0, det_size=(320, 320))
-        self._face_swapper = INSwapper(model_file=swapper_model_file_path, session=onnx_session)
+
+        #swapper_session = onnxruntime.InferenceSession(swapper_model_file_path, providers=self.providers)
+        self._face_swapper = INSwapper(model_file=swapper_model_file_path, session=None)
 
         # face swapper has the option to swap images from previously stored faces as embeddings
         # they dict has structure {faces: face_embedding }

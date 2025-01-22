@@ -181,5 +181,4 @@ ToDo:
 - Improve inference times
   - by implementing batching.
   - by using multi-threading in image_generators
-- remove insightface dependency and update onnx version
-- streaming for the webserver
+

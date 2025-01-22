@@ -1,22 +1,24 @@
 import onnx
 import onnxruntime
 import cv2
-from face2face.core.compatibility import face_align
-
-import os.path as osp
-from pathlib import Path
+import numpy as np
+from face2face.core.compatibility import face_align, transform
+import os
 import pickle
 
-def get_object(name):
-    objects_dir = osp.join(Path(__file__).parent.absolute(), 'objects')
-    if not name.endswith('.pkl'):
-        name = name+".pkl"
-    filepath = osp.join(objects_dir, name)
-    if not osp.exists(filepath):
-        return None
-    with open(filepath, 'rb') as f:
-        obj = pickle.load(f)
-    return obj
+#def get_object(name):
+#    path = "A:\\projects\\_face2face\\face2face\\face2face\\models\\insightface\\buffalo_l\\meanshape_68.pkl"
+#
+#
+#    #objects_dir = osp.join(Path(__file__).parent.absolute(), 'objects')
+#    #if not name.endswith('.pkl'):
+#    #    name = name+".pkl"
+#    #filepath = osp.join(objects_dir, name)
+#    #if not osp.exists(filepath):
+#    #    return None
+#    with open(path, 'rb') as f:
+#        obj = pickle.load(f)
+#    return obj
 
 
 class Landmark:
@@ -67,7 +69,7 @@ class Landmark:
         if output_shape[1]==3309:
             self.lmk_dim = 3
             self.lmk_num = 68
-            self.mean_lmk = get_object('meanshape_68.pkl')
+            self.mean_lmk = self._get_meanshape_68()
             self.require_pose = True
         else:
             self.lmk_dim = 2
@@ -77,6 +79,18 @@ class Landmark:
     def prepare(self, ctx_id, **kwargs):
         if ctx_id<0:
             self.session.set_providers(['CPUExecutionProvider'])
+
+    def _get_meanshape_68(self):
+        if self.mean_lmk is not None:
+            return self.mean_lmk
+
+        meanshape_68_path = os.join(os.dirname(self.model_file), 'meanshape_68.pkl')
+        with open(meanshape_68_path, 'rb') as f:
+            obj = pickle.load(f)
+
+        self.mean_lmk = obj
+        return self.mean_lmk
+
 
     def get(self, img, face):
         bbox = face.bbox
