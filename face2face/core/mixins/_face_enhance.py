@@ -2,11 +2,13 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union
 
+from face2face.core.compatibility.Face import Face
+
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 # other imports
 import numpy as np
-from insightface.app.common import Face
+
 from media_toolkit import ImageFile
 from face2face.core.modules.face_enhance.face_enhancer import enhance_face
 from face2face.core.modules.utils.utils import load_image, download_model

@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union, List, Tuple
 
+from face2face.core.compatibility.Face import Face
 from media_toolkit import ImageFile
 
 if TYPE_CHECKING:
@@ -10,10 +11,9 @@ if TYPE_CHECKING:
 # regular imports
 import glob
 import os
-from io import BytesIO
 
 import numpy as np
-from insightface.app.common import Face
+
 
 from face2face.core.modules.storage.f2f_loader import load_reference_face_from_file
 from face2face.core.modules.storage.file_writable_face import FileWriteableFace

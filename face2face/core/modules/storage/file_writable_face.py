@@ -1,7 +1,10 @@
 import numpy as np
-from insightface.app.common import Face
+
 import os
 from io import BytesIO
+
+from face2face.core.compatibility.Face import Face
+
 
 class FileWriteableFace(dict):
     """

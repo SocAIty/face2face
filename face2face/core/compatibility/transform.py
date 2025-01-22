@@ -2,24 +2,69 @@
 import cv2
 import math
 import numpy as np
-from skimage import transform as trans
 
+arcface_dst = np.array(
+    [[38.2946, 51.6963], [73.5318, 51.5014], [56.0252, 71.7366],
+     [41.5493, 92.3655], [70.7299, 92.2041]],
+    dtype=np.float32)
+
+
+def estimate_norm(lmk, image_size=112):
+    assert lmk.shape == (5, 2)
+    assert image_size % 112 == 0 or image_size % 128 == 0
+
+    if image_size % 112 == 0:
+        ratio = float(image_size) / 112.0
+        diff_x = 0
+    else:
+        ratio = float(image_size) / 128.0
+        diff_x = 8.0 * ratio
+
+    dst = arcface_dst * ratio
+    dst[:, 0] += diff_x
+
+    # Calculate transformation matrix using cv2.estimateAffinePartial2D
+    M, _ = cv2.estimateAffinePartial2D(lmk, dst)
+
+    return M
 
 def transform(data, center, output_size, scale, rotation):
-    scale_ratio = scale
-    rot = float(rotation) * np.pi / 180.0
-    # translation = (output_size/2-center[0]*scale_ratio, output_size/2-center[1]*scale_ratio)
-    t1 = trans.SimilarityTransform(scale=scale_ratio)
-    cx = center[0] * scale_ratio
-    cy = center[1] * scale_ratio
-    t2 = trans.SimilarityTransform(translation=(-1 * cx, -1 * cy))
-    t3 = trans.SimilarityTransform(rotation=rot)
-    t4 = trans.SimilarityTransform(translation=(output_size / 2,
-                                                output_size / 2))
-    t = t1 + t2 + t3 + t4
-    M = t.params[0:2]
-    cropped = cv2.warpAffine(data,M, (output_size, output_size), borderValue=0.0)
-    return cropped, M
+    # Create rotation matrix
+    rot_mat = cv2.getRotationMatrix2D(
+        (center[0] * scale, center[1] * scale),
+        rotation,
+        scale
+    )
+
+    # Adjust translation to center the output
+    rot_mat[0, 2] += (output_size / 2) - (center[0] * scale)
+    rot_mat[1, 2] += (output_size / 2) - (center[1] * scale)
+
+    # Apply transformation
+    cropped = cv2.warpAffine(
+        data,
+        rot_mat,
+        (output_size, output_size),
+        borderValue=0.0
+    )
+
+    return cropped, rot_mat
+
+#def transform(data, center, output_size, scale, rotation):
+#    scale_ratio = scale
+#    rot = float(rotation) * np.pi / 180.0
+#    # translation = (output_size/2-center[0]*scale_ratio, output_size/2-center[1]*scale_ratio)
+#    t1 = trans.SimilarityTransform(scale=scale_ratio)
+#    cx = center[0] * scale_ratio
+#    cy = center[1] * scale_ratio
+#    t2 = trans.SimilarityTransform(translation=(-1 * cx, -1 * cy))
+#    t3 = trans.SimilarityTransform(rotation=rot)
+#    t4 = trans.SimilarityTransform(translation=(output_size / 2,
+#                                                output_size / 2))
+#    t = t1 + t2 + t3 + t4
+#    M = t.params[0:2]
+#    cropped = cv2.warpAffine(data,M, (output_size, output_size), borderValue=0.0)
+#    return cropped, M
 
 
 def trans_points2d(pts, M):
@@ -57,15 +102,29 @@ def trans_points(pts, M):
 
 
 def estimate_affine_matrix_3d23d(X, Y):
-    ''' Using least-squares solution
+    """
+    Estimate the affine transformation matrix using a least-squares solution.
+
     Args:
-        X: [n, 3]. 3d points(fixed)
-        Y: [n, 3]. corresponding 3d points(moving). Y = PX
+        X: ndarray of shape (n, 3). Fixed 3D points.
+        Y: ndarray of shape (n, 3). Corresponding moving 3D points (Y = PX).
+
     Returns:
-        P_Affine: (3, 4). Affine camera matrix (the third row is [0, 0, 0, 1]).
-    '''
-    X_homo = np.hstack((X, np.ones([X.shape[0], 1])))  # n x 4
-    P = np.linalg.lstsq(X_homo, Y)[0].T  # Affine matrix. 3 x 4
+        P_Affine: ndarray of shape (3, 4). Affine camera matrix, where
+                  the third row is [0, 0, 0, 1].
+    """
+    if X.shape[1] != 3 or Y.shape[1] != 3:
+        raise ValueError("Both X and Y must have exactly 3 columns.")
+
+    if X.shape[0] != Y.shape[0]:
+        raise ValueError("X and Y must have the same number of rows.")
+
+    # Add the homogeneous coordinate to X
+    X_homo = np.hstack((X, np.ones((X.shape[0], 1))))  # Shape: (n, 4)
+
+    # Solve the least-squares problem
+    P = np.linalg.lstsq(X_homo, Y, rcond=None)[0].T  # Affine matrix, Shape: (3, 4)
+
     return P
 
 

@@ -5,9 +5,10 @@ import cv2
 import onnxruntime
 from cv2.typing import Size
 import numpy as np
-from insightface.app.common import Face
+
 from .face_enhance_models import get_model_config, WARP_TEMPLATES
 from face2face.settings import EXECUTION_PROVIDER, DEVICE_ID
+from ...compatibility.Face import Face
 
 # Thread Lock required for onnx engine
 THREAD_LOCK = threading.Lock()

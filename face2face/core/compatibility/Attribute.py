@@ -4,7 +4,8 @@ import numpy as np
 import cv2
 import onnx
 import onnxruntime
-from face2face.core.compatibility import face_align
+from face2face.core.compatibility import transform
+
 
 class Attribute:
     def __init__(self, model_file=None, providers=None):
@@ -64,7 +65,7 @@ class Attribute:
         rotate = 0
         _scale = self.input_size[0]  / (max(w, h)*1.5)
         #print('param:', img.shape, bbox, center, self.input_size, _scale, rotate)
-        aimg, M = face_align.transform(img, center, self.input_size[0], _scale, rotate)
+        aimg, M = transform.transform(img, center, self.input_size[0], _scale, rotate)
         input_size = tuple(aimg.shape[0:2][::-1])
         #assert input_size==self.input_size
         blob = cv2.dnn.blobFromImage(aimg, 1.0/self.input_std, input_size, (self.input_mean, self.input_mean, self.input_mean), swapRB=True)

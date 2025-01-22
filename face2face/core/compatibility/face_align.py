@@ -1,37 +1,41 @@
 # -*- coding: utf-8 -*-
 import cv2
 import numpy as np
-from skimage import transform as trans
+
+from face2face.core.compatibility.transform import estimate_norm
 
 
-arcface_dst = np.array(
-    [[38.2946, 51.6963], [73.5318, 51.5014], [56.0252, 71.7366],
-     [41.5493, 92.3655], [70.7299, 92.2041]],
-    dtype=np.float32)
+# from skimage import transform as trans
 
-def estimate_norm(lmk, image_size=112,mode='arcface'):
-    assert lmk.shape == (5, 2)
-    assert image_size%112==0 or image_size%128==0
-    if image_size%112==0:
-        ratio = float(image_size)/112.0
-        diff_x = 0
-    else:
-        ratio = float(image_size)/128.0
-        diff_x = 8.0*ratio
-    dst = arcface_dst * ratio
-    dst[:,0] += diff_x
-    tform = trans.SimilarityTransform()
-    tform.estimate(lmk, dst)
-    M = tform.params[0:2, :]
-    return M
 
-def norm_crop(img, landmark, image_size=112, mode='arcface'):
-    M = estimate_norm(landmark, image_size, mode)
+#arcface_dst = np.array(
+#    [[38.2946, 51.6963], [73.5318, 51.5014], [56.0252, 71.7366],
+#     [41.5493, 92.3655], [70.7299, 92.2041]],
+#    dtype=np.float32)
+
+#def estimate_norm(lmk, image_size=112,mode='arcface'):
+#    assert lmk.shape == (5, 2)
+#    assert image_size%112==0 or image_size%128==0
+#    if image_size%112==0:
+#        ratio = float(image_size)/112.0
+#        diff_x = 0
+#    else:
+#        ratio = float(image_size)/128.0
+#        diff_x = 8.0*ratio
+#    dst = arcface_dst * ratio
+#    dst[:,0] += diff_x
+#    tform = trans.SimilarityTransform()
+#    tform.estimate(lmk, dst)
+#    M = tform.params[0:2, :]
+#    return M
+
+def norm_crop(img, landmark, image_size=112):
+    M = estimate_norm(landmark, image_size)
     warped = cv2.warpAffine(img, M, (image_size, image_size), borderValue=0.0)
     return warped
 
-def norm_crop2(img, landmark, image_size=112, mode='arcface'):
-    M = estimate_norm(landmark, image_size, mode)
+def norm_crop2(img, landmark, image_size=112):
+    M = estimate_norm(landmark, image_size)
     warped = cv2.warpAffine(img, M, (image_size, image_size), borderValue=0.0)
     return warped, M
 
@@ -50,23 +54,23 @@ def square_crop(im, S):
     return det_im, scale
 
 
-def transform(data, center, output_size, scale, rotation):
-    scale_ratio = scale
-    rot = float(rotation) * np.pi / 180.0
-    #translation = (output_size/2-center[0]*scale_ratio, output_size/2-center[1]*scale_ratio)
-    t1 = trans.SimilarityTransform(scale=scale_ratio)
-    cx = center[0] * scale_ratio
-    cy = center[1] * scale_ratio
-    t2 = trans.SimilarityTransform(translation=(-1 * cx, -1 * cy))
-    t3 = trans.SimilarityTransform(rotation=rot)
-    t4 = trans.SimilarityTransform(translation=(output_size / 2,
-                                                output_size / 2))
-    t = t1 + t2 + t3 + t4
-    M = t.params[0:2]
-    cropped = cv2.warpAffine(data,
-                             M, (output_size, output_size),
-                             borderValue=0.0)
-    return cropped, M
+#def transform(data, center, output_size, scale, rotation):
+#    scale_ratio = scale
+#    rot = float(rotation) * np.pi / 180.0
+#    #translation = (output_size/2-center[0]*scale_ratio, output_size/2-center[1]*scale_ratio)
+#    t1 = trans.SimilarityTransform(scale=scale_ratio)
+#    cx = center[0] * scale_ratio
+#    cy = center[1] * scale_ratio
+#    t2 = trans.SimilarityTransform(translation=(-1 * cx, -1 * cy))
+#    t3 = trans.SimilarityTransform(rotation=rot)
+#    t4 = trans.SimilarityTransform(translation=(output_size / 2,
+#                                                output_size / 2))
+#    t = t1 + t2 + t3 + t4
+#    M = t.params[0:2]
+#    cropped = cv2.warpAffine(data,
+#                             M, (output_size, output_size),
+#                             borderValue=0.0)
+#    return cropped, M
 
 
 def trans_points2d(pts, M):

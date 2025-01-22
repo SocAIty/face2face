@@ -1,6 +1,5 @@
 import os
 import numpy as np
-# from insightface.app import FaceAnalysis
 
 from face2face.core.compatibility.Face import Face
 from face2face.core.modules.storage.file_writable_face import FileWriteableFace

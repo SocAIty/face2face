@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
 # other imports
-from insightface.app.common import Face
+from face2face.core.compatibility.Face import Face
 from media_toolkit import VideoFile
 
 

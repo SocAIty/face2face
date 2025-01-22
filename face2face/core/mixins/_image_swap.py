@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, Union, List, Dict
+from typing import TYPE_CHECKING, Union, List
 
+from face2face.core.compatibility.Face import Face
 from face2face.core.modules.face_enhance.face_enhancer import enhance_face
 
 if TYPE_CHECKING:
@@ -11,7 +12,6 @@ if TYPE_CHECKING:
 
 # other imports
 from face2face.core.modules.utils.utils import load_image, download_model
-from insightface.app.common import Face
 from media_toolkit import ImageFile
 import numpy as np
 
