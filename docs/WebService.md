@@ -31,6 +31,7 @@ You can configure some settings via environment variables:
 |--------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | MODELS_DIR | Path to the folder where the models are stored. For example the inswapper and the GPEN models are downloaded and stored in this folder. |
 | EMBEDDINGS_DIR | Path to the folder where the face embeddings are stored. Stored faces can be reused by the api.                                         |
+| ALLOW_EMBEDDING_SAVE_ON_SERVER | If set to True, the embeddings can be saved on the server. Consider to set it false to avoid memory overflow or in multi-user scenarios |
 
 
 # Deployment, Runpod, Docker, file uploads and more

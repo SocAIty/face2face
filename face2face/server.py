@@ -9,6 +9,8 @@ import numpy as np
 from face2face.core.face2face import Face2Face
 from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
 
+from settings import ALLOW_EMBEDDING_SAVE_ON_SERVER
+
 
 f2f = Face2Face()
 app = FastTaskAPI(
@@ -27,7 +29,26 @@ def swap_img_to_img(source_img: ImageFile, target_img: ImageFile, enhance_face_m
     return ImageFile(file_name="swapped_img.png").from_np_array(swapped_img)
 
 @app.task_endpoint("/add_face", queue_size=100)
-def add_face(face_name: str, image: ImageFile = None, save: bool = True):
+def add_face(face_name: str, image: ImageFile = None, save: bool = ALLOW_EMBEDDING_SAVE_ON_SERVER):
+    """
+    Add one or multiple reference face(s) to the face swapper. This face(s) can be used for swapping in other images.
+
+    :param face_name: The name for the reference face.
+        In case you provide a list of face names, an embedding is stored for each face from left to right in the provided image.
+
+    :param image: The image from which to extract the face(s) (can be a numpy array, file path, or ImageFile).
+        If there are multiple faces in the image, an embedding will be created for each name from left to right.
+        If you only provide one name, only the first face will be stored.
+    :param save:
+        If True, the reference face will be saved to the _face_embeddings folder for future use.
+        If False, the reference face will only be stored in memory.
+        Note:
+    :return: a file containing the face embedding. You can send this to the swap endpoint to swap the face with this reference face.
+    """
+    # don't save embeddings on the server if the setting is False
+    # this is useful in "multi-user" scenarios or if the server is not supposed to store any data
+    save = save and ALLOW_EMBEDDING_SAVE_ON_SERVER
+
     face_name, face_embedding = f2f.add_face(face_name=face_name, image=image, save=save)
     bytes_io = face_embedding.to_bytes_io()
     return MediaFile(file_name=f"{face_name}.npy").from_bytesio(bytes_io)
@@ -42,11 +63,6 @@ def swap(
 
     if isinstance(swapped_media, np.ndarray):
         return ImageFile(file_name="swapped.png").from_np_array(swapped_media)
-    #elif isinstance(swapped_media, list):
-    #    return [ImageFile(file_name="swapped.png").from_np_array(img) for img in swapped_media]
-    # ToDo: re-add progress bar for video files. But maybe more under the hood
-    #elif isinstance(swapped_media, VideoFile):
-    #    return VideoFile
 
     return swapped_media
 
