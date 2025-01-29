@@ -9,7 +9,7 @@ import numpy as np
 from face2face.core.face2face import Face2Face
 from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
 
-from settings import ALLOW_EMBEDDING_SAVE_ON_SERVER
+from face2face.settings import ALLOW_EMBEDDING_SAVE_ON_SERVER
 
 
 f2f = Face2Face()

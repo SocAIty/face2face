@@ -1,13 +1,22 @@
 FROM runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
 
 SHELL ["/bin/bash", "-c"]
-# create the folder for face2face
-# RUN mkdir -p /face2face/logs
-WORKDIR /
 
 # Install dependencies
 # ffmpeg needed for mediatoolkit video
-RUN apt-get update && apt-get install -y ffmpeg
+# Install system dependencies including CUDA and cuDNN
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libcudnn9-cuda-12 \
+    libcudnn9-dev-cuda-12 \
+    && apt-get clean
+
+# Ensure CUDA and cuDNN libraries are in the library path
+ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+
+# create the folder for face2face
+# RUN mkdir -p /face2face/logs
+WORKDIR /
 
 # Install Python dependencies (Worker Template)
 # added runpod directly in dependencies
