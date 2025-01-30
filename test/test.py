@@ -1,3 +1,5 @@
+import os.path
+
 from face2face import Face2Face
 import cv2
 from media_toolkit import VideoFile
@@ -64,10 +66,12 @@ def test_video_face_swap():
     source_img = cv2.imread("test_media/test_face_4.jpg")
     # f2f.add_face("caprio", source_img, save=True)
     # swap it
-    vf = VideoFile().from_file("test_media/test_video_1.mp4")
+    fn = "test_media/test_video_ultra_short_short.mp4"
+    vf = VideoFile().from_file(fn)
     #swapped = f2f.swap_to_face_in_video(face_name="caprio", video=vf)
     swapped = f2f.swap(media=vf, faces="caprio", enhance_face_model=None)
-    swapped.save(f"{output_folder}/test_video_2_swapped_swapped_smithy.mp4")
+    swapped.save(f"{output_folder}/{os.path.basename(fn)}_swapped.mp4")
+    a = 1
 
 def test_multi_face_video_swap():
     # add ref face
@@ -89,11 +93,11 @@ def test_multi_face_video_swap():
 
 
 if __name__ == "__main__":
-    test_multi_face_swap()
+    # test_multi_face_swap()
     #test_multi_face_from_reference()
     #test_face_enhancing()
     #test_face_enhancing_single_face()
     #test_multi_face_video_swap()
     # test_embedding_face_swap()
-    # test_video_face_swap()
+    test_video_face_swap()
     a = 1

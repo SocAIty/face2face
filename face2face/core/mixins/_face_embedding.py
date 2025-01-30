@@ -119,19 +119,19 @@ class _FaceEmbedding:
 
         face = None
         for i, name in enumerate(face_name):
-            face_name = encode_path_safe(face_name)
+            name = encode_path_safe(name)
             face = detected_faces[i]
             # Store the detected faces in memory
-            self._face_embeddings[face_name] = face
+            self._face_embeddings[name] = face
 
             # store the detected faces on disc
             face = FileWriteableFace(face)
             # Save face to virtual file
             if save:
                 os.makedirs(EMBEDDINGS_DIR, exist_ok=True)
-                filename = os.path.join(EMBEDDINGS_DIR, f"{face_name}.npy")
+                filename = os.path.join(EMBEDDINGS_DIR, f"{name}.npy")
                 if os.path.isfile(filename):
-                    print(f"Reference face {face_name} already exists. Overwriting.")
+                    print(f"Reference face {name} already exists. Overwriting.")
                 face.to_file(filename)
         if len(face_name) > 1:
             # Return a dict with the face names and embeddings
@@ -140,4 +140,4 @@ class _FaceEmbedding:
                 for name in face_name
             }
         else:
-            return face_name, face
+            return face_name[0], face

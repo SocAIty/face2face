@@ -190,4 +190,5 @@ class _ImageSwap:
                     yield target_image, audio
                     continue
 
-                yield np.array(target_image)
+                frm = np.array(target_image)
+                yield frm
