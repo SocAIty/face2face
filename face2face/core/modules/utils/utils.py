@@ -1,6 +1,5 @@
 import re
 import os
-import urllib
 import zipfile
 from typing import Union
 import numpy as np
@@ -10,11 +9,13 @@ import unicodedata
 import glob
 from face2face.model_definitions import SWAPPER_MODELS, FACE_ENHANCER_MODELS, INSIGHT_FACE_MODELS
 from media_toolkit import ImageFile
+from media_toolkit.utils import download_file
 
 
 def load_image(img: Union[str, np.array, ImageFile]):
     try:
-        image = ImageFile().from_any(img).to_np_array()
+        image = ImageFile().from_any(img)
+        image = image.to_np_array()
         # convert to cv2 BGR image
         # case 4 channels
         if len(image.shape) == 3 and image.shape[2] == 4:
@@ -68,19 +69,6 @@ def get_files_in_dir(path: str, extensions: list | str = None) -> list:
     return files
 
 
-def download_file(download_url: str, save_path: str):
-    model_dir = os.path.dirname(save_path)
-    if not os.path.isdir(model_dir):
-        os.makedirs(model_dir, exist_ok=True)
-
-    if not os.path.isfile(save_path):
-        print(f'Downloading {download_url}')
-        urllib.request.urlretrieve(download_url, save_path)
-        print(f'Downloaded {download_url}')
-
-    return save_path
-
-
 def extract_zip(zip_path: str, extract_path: str):
     # only extract non existing files
     with zipfile.ZipFile(zip_path, 'r') as zf:
@@ -111,15 +99,20 @@ def download_model(model_name: str) -> str:
     # download model
     download_url = model_config.get('url', None)
     save_path = model_config.get('path', None)
-    saved_model = download_file(download_url, save_path)
+
+    model_dir = os.path.dirname(save_path)
+    os.makedirs(model_dir, exist_ok=True)
+
+    if not os.path.isfile(save_path):
+        save_path = download_file(download_url=download_url, save_path=save_path, silent=False)
 
     if not download_url or not download_url.endswith(".zip"):
-        return saved_model
+        return save_path
 
     # was provided as .zip file -> extract
     model_folder = save_path.replace(".zip", "")
     os.makedirs(model_folder, exist_ok=True)
 
-    return extract_zip(saved_model, model_folder)
+    return extract_zip(save_path, model_folder)
 
 

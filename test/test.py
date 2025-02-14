@@ -2,7 +2,7 @@ import os.path
 
 from face2face import Face2Face
 import cv2
-from media_toolkit import VideoFile
+from media_toolkit import VideoFile, ImageFile
 
 
 f2f = Face2Face(device_id=0)
@@ -13,7 +13,8 @@ def test_single_face_swap():
     source_img = "test_media/test_face_1.jpg"
     target_img = "test_media/test_face_2.jpg"
     swapped = f2f.swap_img_to_img(source_img, target_img, enhance_face_model=None)
-    cv2.imwrite(f"{output_folder}/test_swap.png", swapped)
+    ImageFile().from_np_array(swapped).save(f"{output_folder}/test_swap.jpg")
+
 
 def test_multi_face_swap():
     source_img = "test_media/three.jpeg"
@@ -93,6 +94,7 @@ def test_multi_face_video_swap():
 
 
 if __name__ == "__main__":
+    test_single_face_swap()
     # test_multi_face_swap()
     #test_multi_face_from_reference()
     #test_face_enhancing()

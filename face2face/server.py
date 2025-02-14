@@ -115,6 +115,7 @@ def swap_video(
     )
     return output_video
 
+
 # start the server on provided port
 if __name__ == "__main__":
     # setting port to 8020 (referenced as so in socaity sdk for face2face) if not specified differently
