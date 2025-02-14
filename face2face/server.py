@@ -16,7 +16,7 @@ f2f = Face2Face()
 app = FastTaskAPI(
     title="Face2Face service",
     summary="Swap faces from images and videos. Create face embeddings.",
-    version="0.0.6",
+    version="0.0.8",
     contact={
         "name": "SocAIty",
             "url": "https://github.com/SocAIty",
