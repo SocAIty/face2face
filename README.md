@@ -45,7 +45,7 @@ The endpoint allows you to easily deploy face swapping, recognition and restorat
 
 ### Use the Socaity SDK
 
-Speechcraft is available on [socaity.ai](https://socaity.ai) as part of the [socaity sdk](https://github.com/SocAIty/socaity)
+Speechcraft is available on [socaity.ai](https://socaity.ai) as part of the [socaity sdk](https://github.com/SocAIty/socaity).
 Spare yourself the installation and use the sdk directly. NO GPU required.
 
 ```python 
