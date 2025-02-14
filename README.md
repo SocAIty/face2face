@@ -43,6 +43,16 @@ The endpoint allows you to easily deploy face swapping, recognition and restorat
 
 # Setup
 
+### Use the Socaity SDK
+
+Speechcraft is available on [socaity.ai](https://socaity.ai) as part of the [socaity sdk](https://github.com/SocAIty/socaity)
+Spare yourself the installation and use the sdk directly. NO GPU required.
+
+```python 
+from socaity import Face2Face
+swapped_img = Face2Face().f2f.swap_img_to_img("path/to/src.jpg", "path/to/target.jpg").get_result()
+```
+
 ### Install via pip
 Depending on your use case you can install the package with or without the service.
 ```bash
