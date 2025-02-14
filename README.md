@@ -50,10 +50,10 @@ Spare yourself the installation and use the sdk directly. NO GPU required.
 
 ```python 
 from socaity import Face2Face
-swapped_img = Face2Face().f2f.swap_img_to_img("path/to/src.jpg", "path/to/target.jpg").get_result()
+swapped_img = Face2Face().swap_img_to_img("path/to/src.jpg", "path/to/target.jpg").get_result()
 ```
 
-### Install via pip
+### Or: Install via pip
 Depending on your use case you can install the package with or without the service.
 ```bash
 # face2face without service (only for inference from script)
