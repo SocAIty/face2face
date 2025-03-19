@@ -26,5 +26,5 @@ Homepage = "https://www.socaity.ai"
 
 [project.optional-dependencies]
 full = [
-    "fast-task-api[full]>=1.0.7",
+    "fast-task-api[full]>=1.0.8",
 ]
