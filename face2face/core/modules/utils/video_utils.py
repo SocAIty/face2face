@@ -51,6 +51,6 @@ def upscale_video(video_path: str, outpath: str = None):
         print("Warning: Could not find framerate file. Using default framerate 60.")
         frame_rate = 60
 
-    make_video_from_images(
+    return make_video_from_images(
         image_paths, outupscaled + "/upscaled.mp4", frame_rate=frame_rate
     )

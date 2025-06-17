@@ -9,6 +9,7 @@ f2f = Face2Face(device_id=0)
 
 output_folder = "output"
 
+
 def test_single_face_swap():
     source_img = "test_media/test_face_1.jpg"
     target_img = "test_media/test_face_2.jpg"
@@ -22,12 +23,14 @@ def test_multi_face_swap():
     swapped = f2f.swap_img_to_img(source_img, target_img, enhance_face_model='gpen_bfr_2048')
     cv2.imwrite(f"{output_folder}/multi_swap.png", swapped)
 
+
 def test_embedding_face_swap():
     source_img = "test_media/test_face_1.jpg"
     target_img = "test_media/test_face_2.jpg"
     f2f.add_face("hagrid", source_img, save=True)
     swapped = f2f.swap(media=target_img, faces="hagrid")
     cv2.imwrite(f"{output_folder}/test_swap.png", swapped)
+
 
 def test_multi_face_from_reference():
     f1 = "test_media/test_face_1.jpg"
@@ -40,10 +43,6 @@ def test_multi_face_from_reference():
     f2f.add_face("trump", f4, save=True)
 
     test_multi_face_img = "test_media/test_multi_swap_from_reference.jpg"
-    #swapped = f2f.swap_pairs(test_multi_face_img, swap_pairs={
-    #    "trump": "hagrid",
-    #    "biden": "ron"
-    #})
     swapped = f2f.swap(media=test_multi_face_img, faces={
         "trump": "hagrid",
         "biden": "ron"
@@ -56,23 +55,24 @@ def test_face_enhancing():
     enhanced = f2f.enhance_faces(image=source_img, model='gpen_bfr_2048')
     cv2.imwrite(f"{output_folder}/enhance_test_gpen_bfr_2048.png", enhanced)
 
+
 def test_face_enhancing_single_face():
     source_img = "test_media/three.jpeg"
     f = f2f.detect_faces(source_img)
     enhanced = f2f.enhance_single_face(image=source_img, target_face=f[0], model='gfpgan_1.4')
     cv2.imwrite(f"{output_folder}/enhance_single_face_gfpgan_1.4.png", enhanced)
 
+
 def test_video_face_swap():
     # add ref face
-    source_img = cv2.imread("test_media/test_face_4.jpg")
+    # source_img = cv2.imread("test_media/test_face_4.jpg")
     # f2f.add_face("caprio", source_img, save=True)
     # swap it
     fn = "test_media/test_video_ultra_short_short.mp4"
     vf = VideoFile().from_file(fn)
-    #swapped = f2f.swap_to_face_in_video(face_name="caprio", video=vf)
     swapped = f2f.swap(media=vf, faces="caprio", enhance_face_model=None)
     swapped.save(f"{output_folder}/{os.path.basename(fn)}_swapped.mp4")
-    a = 1
+
 
 def test_multi_face_video_swap():
     # add ref face
@@ -82,10 +82,6 @@ def test_multi_face_video_swap():
     f2f.add_face("warren", "test_media/test_face_7.jpeg", save=True)
     # swap it
     vf = VideoFile().from_file("test_media/test_video_1.mp4")
-    #swapped = f2f.swap_pairs_in_video(swap_pairs={
-    #    "murphy": "biden",
-    #    "warren": "harris"
-    #}, video=vf)
     swapped = f2f.swap(media=vf, enhance_face_model=None, faces={
         "murphy": "biden",
         "warren": "harris",

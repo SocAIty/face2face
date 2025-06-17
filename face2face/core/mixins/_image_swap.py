@@ -71,7 +71,7 @@ class _ImageSwap:
             faces: Union[str, list, Face, List[Face]],
             image: Union[np.array, list, ImageFile],
             enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
-        ) -> np.array:
+    ) -> np.array:
         """
         Changes the face(s) of the target image to the face of the reference image.
         :param faces: the name of the reference face
@@ -118,7 +118,7 @@ class _ImageSwap:
             raise Exception("No source faces found!")
 
         if target_faces is None or len(target_faces) == 0:
-            print(f"No face found in image. Return image as is")
+            print("No face found in image. Return image as is")
             return image
 
         # make sure it is a numpy array

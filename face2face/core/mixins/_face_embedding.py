@@ -1,9 +1,9 @@
 # avoid circular dependency but provide type hints
 from __future__ import annotations
-from typing import TYPE_CHECKING, Union, List, Tuple
+from typing import TYPE_CHECKING, Union, List, Tuple, Dict
 
 from face2face.core.compatibility.Face import Face
-from media_toolkit import ImageFile
+from media_toolkit import ImageFile, MediaFile, MediaList
 
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
@@ -42,18 +42,49 @@ class _FaceEmbedding:
         self._face_embeddings[face_name] = face
         return face
 
-    def load_faces(self, face_names: Union[str, List[str], List[Face], None] = None) -> dict:
+    def load_faces(
+        self, 
+        face_names: Union[str, List[str], List[Face], MediaFile, MediaList, None] = None
+    ) -> Dict[str, Face]:
         """
-        :param face_names: the faces to load from the _face_embeddings folder.
-            If None all stored face_embeddings are loaded and returned.
-            If list of strings, the faces with the names in the list are loaded.
-            If list of Face objects, the faces are returned as { index: face }.
-        :return: the loaded faces as dict {face_name: face_embedding}.
+        Load face embeddings from various sources.
+        
+        Args:
+            face_names: The source of face embeddings to load. Can be:
+                - None: Loads all stored face embeddings from the _face_embeddings folder
+                - str: Loads a single face embedding by name
+                - List[str]: Loads multiple face embeddings by their names
+                - List[Face]: Returns the faces as {index: face}
+                - MediaFile: Loads a face from the file content (e.g., from API response)
+                - MediaList: Loads faces from each file in the list, supporting both MediaFile and string paths
+        
+        Returns:
+            Dict[str, Face]: Dictionary mapping face names to their embeddings.
+                For MediaFile inputs, uses the file name as the key.
+                For MediaList inputs, uses file names or string paths as keys.
+                For List[Face] inputs, uses numeric indices as keys.
+        
+        Raises:
+            ValueError: If a face file is not found or cannot be loaded
         """
         if face_names is None:
             return self.load_all_faces()
         elif isinstance(face_names, str):
             return {face_names: self.load_face(face_names)}
+        elif isinstance(face_names, MediaFile):
+            # Load face from MediaFile content
+            face = load_reference_face_from_file(face_names.to_bytes_io())
+            return {face_names.file_name: face}
+        elif isinstance(face_names, MediaList):
+            # Load faces from each file in MediaList
+            ret = {}
+            for i, file in enumerate(face_names):
+                if isinstance(file, MediaFile):
+                    face = load_reference_face_from_file(file.to_bytes_io())
+                    ret[file.file_name] = face
+                elif isinstance(file, str):
+                    ret[file] = self.load_face(file)
+            return ret
 
         # convert whatever list to dict
         ret = {}
@@ -65,9 +96,12 @@ class _FaceEmbedding:
 
         return ret
 
-    def load_all_faces(self: Face2Face):
+    def load_all_faces(self: Face2Face) -> Dict[str, Face]:
         """
         Load all face embeddings from the _face_embeddings folder.
+        
+        Returns:
+            Dict[str, Face]: Dictionary mapping face names to their embeddings
         """
         for face_name in glob.glob(self._face_embedding_folder + "/*.npy"):
             self.load_face(face_name)
@@ -78,24 +112,29 @@ class _FaceEmbedding:
         face_name: Union[str, List[str]],
         image: Union[np.array, str, ImageFile],
         save: bool = False
-    ) -> Union[Tuple[str, FileWriteableFace], dict]:
+    ) -> Union[Tuple[str, FileWriteableFace], Dict[str, Face]]:
         """
         Add one or multiple reference face(s) to the face swapper. This face(s) can be used for swapping in other images.
 
-        :param face_name: The name for the reference face.
-            In case you provide a list of face names, an embedding is stored for each face from left to right in the provided image.
+        Args:
+            face_name: The name(s) for the reference face(s).
+                - If a single string, creates one face embedding
+                - If a list of strings, creates embeddings for each face from left to right in the image
+            image: The image from which to extract the face(s). Can be:
+                - numpy array: Direct image data
+                - str: Path to image file
+                - ImageFile: MediaFile containing the image
+            save: If True, saves the face embeddings to disk in the _face_embeddings folder.
+                If False, only stores them in memory.
 
-        :param image: The image from which to extract the face(s) (can be a numpy array, file path, or ImageFile).
-            If there are multiple faces in the image, an embedding will be created for each name from left to right.
-            If you only provide one name, only the first face will be stored.
-        :param save:
-            If True, the reference face will be saved to the _face_embeddings folder for future use.
-            If False, the reference face will only be stored in memory.
-        :return: A tuple containing the safely encoded face name and the reference face.
-            In case of multiple faces returns as dict {face_name: face_embedding}
+        Returns:
+            Union[Tuple[str, FileWriteableFace], Dict[str, Face]]:
+                - For single face: Tuple of (face_name, FileWriteableFace)
+                - For multiple faces: Dict mapping face names to their embeddings
+
+        Raises:
+            ValueError: If no face name is provided or no faces are detected in the image
         """
-
-
         if isinstance(face_name, list) and len(face_name) == 0 or face_name is None:
             raise ValueError("Please provide at least one face name.")
 

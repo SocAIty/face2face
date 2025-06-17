@@ -56,7 +56,6 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
         self._face_embedding_folder = face_embedding_folder
         self._face_embeddings = {}
 
-
     def swap(
         self,
         media: Union[str, np.ndarray, tuple, List[str], ImageFile, VideoFile],
@@ -69,7 +68,7 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
         :param media: the image or video to swap the faces in.
             if str -> path to image or video. Load from file
             if np.array -> image
-            if tuple -> (image, image). Same as swap_one
+            if tuple -> (image, image). Same as swap_img_to_img
             if List[str] -> list of file paths. Perform swap on all of those files
             if generator -> generator that yields images or tuples (image, audio)
             if VideoFile -> video file

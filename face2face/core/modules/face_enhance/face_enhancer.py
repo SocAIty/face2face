@@ -141,7 +141,7 @@ def enhance_face(
     model_size = config.get('size')
     model_path = config.get('path')
 
-    landmark = target_face.get("kps") # get('landmark_2d_106')
+    landmark = target_face.get("kps")  # get('landmark_2d_106')
 
     crop_vision_frame, affine_matrix = warp_face_by_face_landmark_5(
         temp_vision_frame,
@@ -151,7 +151,7 @@ def enhance_face(
     )
     box_mask = create_static_box_mask(
         crop_vision_frame.shape[:2][::-1],
-        face_mask_blur=0.0,#(0, 0, 0, 0),  # facefusion.globals.face_mask_blur,
+        face_mask_blur=0.0,  # (0, 0, 0, 0),  # facefusion.globals.face_mask_blur,
         face_mask_padding=(0, 0, 0, 0)
     )
     crop_mask_list = [box_mask]

@@ -21,7 +21,7 @@ class FileWriteableFace(dict):
             if not attr.startswith("__"):
                 try:
                     self[attr] = face[attr]
-                except:
+                except Exception:
                     try:
                         if type(face.attr) in [
                             np.float32,
@@ -32,7 +32,7 @@ class FileWriteableFace(dict):
                             self.attr = (float)(face[attr])
                         else:
                             self.attr = face.attr
-                    except:
+                    except Exception:
                         pass
 
     @staticmethod

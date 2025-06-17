@@ -1,19 +1,32 @@
 import os
 import numpy as np
+from typing import Union, Dict
+from io import BytesIO
 
 from face2face.core.compatibility.Face import Face
 from face2face.core.modules.storage.file_writable_face import FileWriteableFace
 from face2face.core.modules.utils import get_files_in_dir
 
 
-def load_reference_face_from_file(face_embedding_file_path: str) -> Face:
+def load_reference_face_from_file(face_embedding_file_path: Union[str, BytesIO]) -> Face:
     """
-    Load a reference face from a file.
-    :param face_embedding_file_path: the file path of the reference face
-    :return: the reference face
+    Load a reference face from a file or BytesIO buffer.
+    
+    Args:
+        face_embedding_file_path: Source of the face embedding. Can be:
+            - str: Path to a .npy file containing the face embedding
+            - BytesIO: Buffer containing the face embedding data
+    
+    Returns:
+        Face: The loaded face object with its embedding and attributes
+    
+    Raises:
+        ValueError: If the file is not found (for string paths) or cannot be loaded
+        Exception: If the face data is invalid or cannot be converted to a Face object
     """
-    if not os.path.exists(face_embedding_file_path):
-        raise ValueError(f"Reference face {face_embedding_file_path} not found.")
+    if isinstance(face_embedding_file_path, str):
+        if not os.path.exists(face_embedding_file_path):
+            raise ValueError(f"Reference face {face_embedding_file_path} not found.")
 
     try:
         # note: potential security issue, if the file was not created with face2face
@@ -23,12 +36,18 @@ def load_reference_face_from_file(face_embedding_file_path: str) -> Face:
         raise f"Error loading reference face {face_embedding_file_path}: {e}"
 
 
-def load_reference_faces_from_folder(folder_path: str) -> dict:
+def load_reference_faces_from_folder(folder_path: str) -> Dict[str, Face]:
     """
-    Load reference faces from a folder. The folder must contain .npy files with the reference faces.
-    The file name will be used as the reference face name.
-    :param folder_path: the folder path
-    :return:
+    Load all reference faces from a folder containing .npy files.
+    
+    Args:
+        folder_path: Path to the folder containing face embedding files (.npy)
+    
+    Returns:
+        Dict[str, Face]: Dictionary mapping face names (derived from filenames) to their Face objects
+    
+    Note:
+        Only loads .npy files from the specified folder. Skips any files that cannot be loaded.
     """
     files = get_files_in_dir(folder_path, [".npy"])
     reference_faces = {}
@@ -40,3 +59,4 @@ def load_reference_faces_from_folder(folder_path: str) -> dict:
         reference_faces[face_name] = embedding
 
     return reference_faces
+
