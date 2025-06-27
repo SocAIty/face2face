@@ -9,7 +9,7 @@ import unicodedata
 import glob
 from face2face.model_definitions import SWAPPER_MODELS, FACE_ENHANCER_MODELS, INSIGHT_FACE_MODELS
 from media_toolkit import ImageFile
-from media_toolkit.utils import download_file
+from media_toolkit.utils.download_helper import download_file
 
 
 def load_image(img: Union[str, np.array, ImageFile]):
