@@ -104,7 +104,7 @@ def download_model(model_name: str) -> str:
     os.makedirs(model_dir, exist_ok=True)
 
     if not os.path.isfile(save_path):
-        save_path = download_file(download_url=download_url, save_path=save_path, silent=False)
+        save_path, _ = download_file(download_url=download_url, save_path=save_path, silent=False)
 
     if not download_url or not download_url.endswith(".zip"):
         return save_path
