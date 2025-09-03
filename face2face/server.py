@@ -114,7 +114,7 @@ def swap(
     if isinstance(media, VideoFile):
         return swap_video(job_progress=job_progress, faces=faces, target_video=media, enhance_face_model=enhance_face_model, include_audio=True)
 
-    job_progress.set_status(message="Started swapping faces")
+    job_progress.set_status(progress=0.01, message="Started swapping faces")
     swapped_media = f2f.swap(faces=faces, media=media, enhance_face_model=enhance_face_model)
 
     if isinstance(swapped_media, np.ndarray):
@@ -171,7 +171,7 @@ def swap_video(
 
             else:
                 percent_total = 0.5  # arbitrary number
-            job_progress.set_status(message=f"swapping frame {i}", progress=percent_total)
+            job_progress.set_status(progress=percent_total, message=f"swapping frame {i}")
 
             # Yield the image
             if include_audio and audio is not None:
