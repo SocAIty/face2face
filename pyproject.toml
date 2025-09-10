@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "socaity-face2face"
-version = "1.2.0-dev"
+version = "1.2.2"
 description="Swap faces from one image to another. Create face embeddings. Integrate into hosted environments."
 requires-python = ">=3.8"
 authors = [
@@ -17,7 +17,7 @@ dependencies = [
     'httpx',
     'onnx>=1.17.0',
     'onnxruntime-gpu>=1.20.1',
-    "media-toolkit[VideoFile]>=00.02.11-dev"
+    "media-toolkit[VideoFile]>=00.02.14"
 ]
 
 [project.urls]
@@ -26,5 +26,5 @@ Homepage = "https://www.socaity.ai"
 
 [project.optional-dependencies]
 full = [
-    "fast-task-api>=1.2.3-dev",
+    "fast-task-api>=1.2.4",
 ]

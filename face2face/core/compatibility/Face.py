@@ -3,9 +3,8 @@
 This is a copy of the original implementation of insight Face class.
 Used to remove insightface dependencies.
 """
-
-
 from numpy.linalg import norm as l2norm
+
 
 class Face(dict):
     def __init__(self, d=None, **kwargs):
@@ -18,8 +17,7 @@ class Face(dict):
 
     def __setattr__(self, name, value):
         if isinstance(value, (list, tuple)):
-            value = [self.__class__(x)
-                    if isinstance(x, dict) else x for x in value]
+            value = [self.__class__(x) if isinstance(x, dict) else x for x in value]
         elif isinstance(value, dict) and not isinstance(value, self.__class__):
             value = self.__class__(value)
         super(Face, self).__setattr__(name, value)
@@ -46,4 +44,4 @@ class Face(dict):
     def sex(self):
         if self.gender is None:
             return None
-        return 'M' if self.gender==1 else 'F'
+        return 'M' if self.gender == 1 else 'F'

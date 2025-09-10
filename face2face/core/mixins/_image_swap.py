@@ -9,18 +9,20 @@ from face2face.core.modules.face_enhance.face_enhancer import enhance_face
 
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
+    from media_toolkit import MediaFile, MediaList, ImageFile
 
 # other imports
-from face2face.core.modules.utils.utils import load_image, download_model
-from media_toolkit import ImageFile
+from face2face.core.modules.utils import load_image, download_model
 import numpy as np
+
+types_faces = Union[str, Face, list, 'ImageFile', 'MediaFile', 'MediaList']
 
 
 class _ImageSwap:
     def swap_image(
             self: Face2Face,
             image: Union[str, np.array, ImageFile],
-            faces: Union[str, dict, list, List[Face], Face],
+            faces: types_faces,
             enhance_face_model: str = 'gpen_bfr_512'
     ) -> np.array:
         """
@@ -34,7 +36,7 @@ class _ImageSwap:
             if Face -> the face object to swap to. All faces in the image will be swapped to this face.
         :param enhance_face_model: the face enhancement model to use. Use None for no enhancement
         """
-        if isinstance(faces, dict):
+        if not isinstance(faces, Face) and isinstance(faces, dict):
             return self.swap_pairs(image=image, swap_pairs=faces, enhance_face_model=enhance_face_model)
 
         return self.swap_to_faces(faces=faces, image=image, enhance_face_model=enhance_face_model)
@@ -68,13 +70,13 @@ class _ImageSwap:
 
     def swap_to_faces(
             self: Face2Face,
-            faces: Union[str, list, Face, List[Face]],
+            faces: types_faces,
             image: Union[np.array, list, ImageFile],
             enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
     ) -> np.array:
         """
         Changes the face(s) of the target image to the face of the reference image.
-        :param faces: the name of the reference face
+        :param faces: the name of the reference face(s), reference face(s), image file or list of image files
         :param image: the target image in BGR format (read with cv2). Can be a list of images
         :param enhance_face_model: if str, the faces will be enhanced with the given face enhancer model.
             if none the faces will not be enhanced
@@ -90,7 +92,7 @@ class _ImageSwap:
             return list(gen)
 
         # swap single image
-        source_faces = self.load_faces(faces)
+        source_faces = self.get_faces(faces)
         source_faces = list(source_faces.values())
         target_faces = self.detect_faces(image)
         return self._swap_faces(
@@ -154,7 +156,7 @@ class _ImageSwap:
 
     def swap_to_face_generator(
             self: Face2Face,
-            faces: Union[str, list, Face, List[Face]],
+            faces: types_faces,
             image_generator,
             enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
     ):
@@ -167,8 +169,12 @@ class _ImageSwap:
             if none the faces will not be enhanced
         :return: a generator that yields the swapped images or tuples (image, audio)
         """
-        source_faces = self.load_faces(faces)
+        source_faces = self.get_faces(faces)
         source_faces = list(source_faces.values())
+
+        if len(source_faces) == 0:
+            print("No source faces found. Returning image_generator as is.")
+            return image_generator
 
         for i, target_image in enumerate(image_generator):
             # check if generator yields tuples (video, audio) or only images

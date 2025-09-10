@@ -11,7 +11,7 @@ import numpy as np
 
 from media_toolkit import ImageFile
 from face2face.core.modules.face_enhance.face_enhancer import enhance_face
-from face2face.core.modules.utils.utils import load_image, download_model
+from face2face.core.modules.utils import load_image, download_model
 
 
 class _FaceEnhancer:

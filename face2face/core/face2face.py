@@ -9,15 +9,14 @@ from face2face.core.compatibility.Face import Face
 from face2face.core.compatibility.FaceAnalysis import FaceAnalysis
 from face2face.core.compatibility.INSwapper import INSwapper
 from face2face.core.mixins._image_swap import _ImageSwap
-from media_toolkit import media_from_file, VideoFile, ImageFile
+from media_toolkit import VideoFile, ImageFile, MediaList
 
 from face2face.core.mixins._face_embedding import _FaceEmbedding
 from face2face.core.mixins._face_enhance import _FaceEnhancer
 from face2face.core.mixins._face_recognition import _FaceRecognition
 from face2face.core.mixins._video_swap import _Video_Swap
 
-from face2face.core.modules.utils.utils import load_image
-from face2face.core.modules.utils.utils import download_model
+from face2face.core.modules.utils import load_image, download_model
 from face2face.settings import EMBEDDINGS_DIR, DEVICE_ID
 
 
@@ -58,55 +57,99 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
 
     def swap(
         self,
-        media: Union[str, np.ndarray, tuple, List[str], ImageFile, VideoFile],
+        media: Union[str, np.ndarray, tuple, List[str], ImageFile, VideoFile, List[ImageFile], MediaList],
         faces: Union[str, dict, list, List[Face], Face, None] = None,
         enhance_face_model: Union[str, None] = 'gpen_bfr_512',
         include_audio: bool = True
     ) -> Union[np.array, list, VideoFile]:
         """
-        This is a unified function to swap faces in images and videos.
-        :param media: the image or video to swap the faces in.
-            if str -> path to image or video. Load from file
-            if np.array -> image
-            if tuple -> (image, image). Same as swap_img_to_img
-            if List[str] -> list of file paths. Perform swap on all of those files
-            if generator -> generator that yields images or tuples (image, audio)
-            if VideoFile -> video file
+        Perform a unified face swap operation on images, videos, or streams.
+        Parameters
+        ----------
+        media : The input media where faces should be swapped. Supported formats:
+            - str: Path or URL to an image or video file. The media will be loaded automatically.
+            - np.ndarray: Image array (H, W, C) in RGB or BGR format.
+            - tuple:
+                * (image, image): Equivalent to swap_img_to_img.
+                * (image, video): Equivalent to swap_img_to_video(image, video).
+                * (video, image): Equivalent to swap_img_to_video(image, video).
+            - list[str]: A list of file paths or URLs; swaps will be applied to each item.
+            - ImageFile: Preloaded image object.
+            - VideoFile: Preloaded video object.
 
-        :param faces: defines what to swap to.
-            if str -> the name of the face to swap to. All faces in the image will be swapped to this face.
-            if list -> the list of face_names or face objects to swap to from left to right.
-            if dict -> the swap_pairs with the structure {source_face_name: target_face_name}. Use face recognition
-                to swap the source faces to the target faces.
-            if Face -> the face object to swap to. All faces in the image will be swapped to this face.
+        faces : The face(s) in the media will be swapped to the provided face(s). Variants:
+            - str:
+                * Path/URL to an image → faces are detected from the image and used as swap targets.
+                * Path/URL to an face embedding file (.npy, etc.).
+                * Registered face name → all detected faces in the media are swapped to this identity.
+            - list:
+                * List[Face]: Multiple Face embeddings.
+                * List[str]: List of paths, URLs, registered names, or Face objects. → swaps are applied in order (left-to-right).
+            - dict:
+                * Mapping {source_face: face_embedding} → uses recognition to map specific source → target swaps.
+            - Face: A single Face embedding.
+            - list[Face]: Multiple Face embeddings.
 
-        :param enhance_face_model: the face enhancement model to use. Use None for no enhancement
-        :param include_audio: if True, the audio will be included in the output video if the input is a video.
+        enhance_face_model : str | None, default="gpen_bfr_512"
+            Optional face enhancement model to apply post-swap (e.g. GPEN, CodeFormer).
+            Set to None to disable enhancement.
+
+        include_audio : bool, default=True
+            If True, preserves audio when processing videos. Ignored for images.
+
+        Returns
+        -------
+        np.ndarray | list[np.ndarray] | VideoFile
+            - Single image (np.ndarray) if input was an image.
+            - List of images (list[np.ndarray]) if input was a list of files or a generator.
+            - VideoFile object if input was a video.
+
+        Notes
+        -----
+        - Supports both static (images) and dynamic (video/stream) swapping.
+        - If multiple faces are present, swaps are applied in recognition order left to right.
+        - Enhancement is applied after swapping, per frame in videos.
         """
-        if isinstance(media, tuple):
-            return self.swap_img_to_img(media[0], media[1], enhance_face_model)
-        if isinstance(media, list):
-            return [self.swap(inp, faces, enhance_face_model, include_audio) for inp in media]
 
+        if media is None:
+            raise ValueError("Please provide media to swap.")
+        
+        # TODO: the fucking faces in dict is a shit with swapping by pairs (with recognition)
+        # Needs to be fixed.
+        if faces is not None and not isinstance(faces, dict):
+            faces = self.get_faces(faces)
+
+        # read all the provided media
+        media = MediaList(read_system_files=True, download_files=True).from_any(media)
+
+        if len(media) == 0:
+            raise ValueError("Please provide media to swap.")
+
+        # DECIDE WHICH METHOD TO USE FOR FACE SWAPPING
+        # media pair based swaps
+        if len(media) == 2 and faces is None:
+            if isinstance(media[0], ImageFile) and isinstance(media[1], ImageFile):
+                return self.swap_img_to_img(media[0], media[1], enhance_face_model)
+            elif isinstance(media[0], ImageFile) and isinstance(media[1], VideoFile):
+                return self.swap_video(media[0], media[1], enhance_face_model)
+            elif isinstance(media[0], VideoFile) and isinstance(media[1], ImageFile):
+                return self.swap_video(media[1], media[0], enhance_face_model)
+
+        # face based swaps
         if faces is None:
             raise ValueError("Please provide faces to swap to.")
+        
+        if len(media) >= 2:
+            return [self.swap(inp, faces, enhance_face_model, include_audio) for inp in media]
 
-        # convert to image or video file
-        file = None
-        if type(media) in [ImageFile, VideoFile]:
-            file = media
-        elif isinstance(media, str):
-            file = media_from_file(media)
-        elif isinstance(media, np.ndarray):
-            file = ImageFile().from_np_array(media)
-
-        # perform swaps
-        if isinstance(file, ImageFile):
-            return self.swap_image(image=file, faces=faces, enhance_face_model=enhance_face_model)
-        elif isinstance(file, VideoFile):
-            return self.swap_video(
-                faces=faces, video=file, include_audio=include_audio, enhance_face_model=enhance_face_model
-            )
+        if isinstance(media[0], ImageFile):
+            if not isinstance(faces, Face) and isinstance(faces, dict):
+                return self.swap_pairs(media[0], faces, enhance_face_model)
+            return self.swap_image(media[0], faces, enhance_face_model)
+        elif isinstance(media[0], VideoFile):
+            if not isinstance(faces, Face) and isinstance(faces, dict):
+                return self.swap_pairs_in_video(faces, media[0], enhance_face_model, include_audio)
+            return self.swap_video(media[0], faces, enhance_face_model, include_audio)
 
         raise ValueError(f"Wrong file type {media}. Check input.")
 
@@ -120,5 +163,3 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
             return sorted(face, key=lambda x: x.bbox[0])
         except IndexError:
             return None
-
-

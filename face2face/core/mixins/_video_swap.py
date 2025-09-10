@@ -1,27 +1,26 @@
 # avoid circular dependency but provide type hints
 from __future__ import annotations
-from typing import TYPE_CHECKING, Union, List, Dict
+from typing import TYPE_CHECKING, Union
+
+from face2face.core.compatibility.Face import Face
+from media_toolkit import VideoFile
 
 from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
 
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
+    from media_toolkit import MediaFile, MediaList, ImageFile
 
-# other imports
-from face2face.core.compatibility.Face import Face
-from media_toolkit import VideoFile
-
-
+types_faces = Union[str, Face, list, 'ImageFile', 'MediaFile', 'MediaList']
 
 
 class _Video_Swap:
-
     def swap_video(
-            self: Face2Face,
-            video: Union[str, VideoFile],
-            faces: Union[str, dict, list, List[Face], Face],
-            enhance_face_model: Union[str, None] = None,
-            include_audio: bool = True
+        self: Face2Face,
+        video: Union[str, VideoFile],
+        faces: types_faces,
+        enhance_face_model: Union[str, None] = None,
+        include_audio: bool = True
     ):
         """
         Swaps the faces in the video.
@@ -31,24 +30,22 @@ class _Video_Swap:
         :param include_audio: if True, the audio will be included in the output video
         """
         video = VideoFile().from_any(video)
-        if isinstance(faces, dict):
+        if not isinstance(faces, Face) and isinstance(faces, dict):
             return self.swap_pairs_in_video(
                 swap_pairs=faces, video=video, enhance_face_model=enhance_face_model, include_audio=include_audio
             )
-        elif type(faces) in [list, str, Face]:
-            return self.swap_to_face_in_video(
-                faces=faces, video=video, enhance_face_model=enhance_face_model, include_audio=include_audio
-            )
-
-        raise NotImplementedError
+    
+        return self.swap_to_face_in_video(
+            faces=faces, video=video, enhance_face_model=enhance_face_model, include_audio=include_audio
+        )
 
     def swap_to_face_in_video(
-            self: Face2Face,
-            faces: str,
-            video: Union[str, VideoFile],
-            include_audio: bool = True,
-            enhance_face_model: Union[str, None] = None
-        ):
+        self: Face2Face,
+        faces: types_faces,
+        video: Union[str, VideoFile],
+        include_audio: bool = True,
+        enhance_face_model: Union[str, None] = None
+    ):
         """
         Swaps the face of the target video to the face of the reference image.
         :param face_name: the name of the reference face embedding
@@ -74,12 +71,12 @@ class _Video_Swap:
         return new_video
 
     def swap_pairs_in_video(
-            self: Face2Face,
-            swap_pairs: dict,
-            video: Union[str, VideoFile],
-            include_audio: bool = True,
-            enhance_face_model: Union[str, None] = None,
-            recognition_threshold: float = 0.5
+        self: Face2Face,
+        swap_pairs: dict,
+        video: Union[str, VideoFile],
+        include_audio: bool = True,
+        enhance_face_model: Union[str, None] = None,
+        recognition_threshold: float = 0.5
     ):
         """
         Swaps the reference faces in the target video.
@@ -96,10 +93,10 @@ class _Video_Swap:
         gen = video.to_video_stream(include_audio=include_audio)
 
         swapper_gen = self.swap_pairs_generator(
-                swap_pairs=swap_pairs,
-                image_generator=gen,
-                enhance_face_model=enhance_face_model,
-                recognition_threshold=recognition_threshold
+            swap_pairs=swap_pairs,
+            image_generator=gen,
+            enhance_face_model=enhance_face_model,
+            recognition_threshold=recognition_threshold
         )
 
         # allow tqdm to show better progress bar

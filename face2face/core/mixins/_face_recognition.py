@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
 
 # normal imports
-from face2face.core.modules.utils.utils import load_image
+from face2face.core.modules.utils import load_image
 from collections import OrderedDict
 from face2face.core.compatibility.Face import Face
 import numpy as np
@@ -34,7 +34,11 @@ class _FaceRecognition:
         detected_faces = self.detect_faces(image)
 
         # Load reference faces
-        ref_faces = self.load_faces(face_names)
+        if face_names is not None:
+            ref_faces = self.get_faces(face_names)
+        else:
+            ref_faces = self.load_all_face_embeddings()
+
         ref_faces = self._to_single_face_embeddings(ref_faces)
 
         # Detect faces and calculate face distances to source reference faces
@@ -73,7 +77,7 @@ class _FaceRecognition:
         )
 
         # load the faces of the second swap partners
-        swap_partner_embeddings = self.load_faces(face_names=list(swap_pairs.values()))
+        swap_partner_embeddings = self.get_faces(faces=list(swap_pairs.values()))
         swap_partner_embeddings = self._to_single_face_embeddings(swap_partner_embeddings)
 
         # swap faces of recognized partners to the second swap partners
@@ -185,7 +189,6 @@ class _FaceRecognition:
         if hasattr(face, 'normed_embedding') and hasattr(reference_face, 'normed_embedding'):
             return 1 - np.dot(face.normed_embedding, reference_face.normed_embedding)
         return 1
-
 
     # @staticmethod
     # def cosine_distance(embedding1, embedding2):

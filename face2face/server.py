@@ -1,22 +1,27 @@
 import os
+import numpy as np
 from typing import Literal, Union, List
 
 from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile, MediaList, MediaDict
-
-import numpy as np
-
-
+import fast_task_api
+import media_toolkit
+import face2face
 from face2face.core.face2face import Face2Face
 from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
 
 from face2face.settings import ALLOW_EMBEDDING_SAVE_ON_SERVER
+
+# print the fasttaskapi version, media-toolkit version and face2face version
+print(f"FastTaskAPI version: {fast_task_api.__version__}")
+print(f"Media-toolkit version: {media_toolkit.__version__}")
+print(f"Face2Face version: {face2face.__version__}")
 
 
 f2f = Face2Face()
 app = FastTaskAPI(
     title="Face2Face",
     summary="Swap faces from images and videos. Create face embeddings.",
-    version="0.0.8",
+    version="1.2.4",
     contact={
         "name": "SocAIty",
         "url": "https://github.com/SocAIty/face2face",
@@ -73,7 +78,7 @@ def add_face(
     # this is useful in "multi-user" scenarios or if the server is not supposed to store any data
     save = save and ALLOW_EMBEDDING_SAVE_ON_SERVER
 
-    faces = f2f.add_face(face_name=face_name, image=image, save=save)
+    faces = f2f.add_face(face_name=face_name, media=image, save=save)
 
     if isinstance(faces, dict):
         return MediaDict({
@@ -88,8 +93,8 @@ def add_face(
 @app.task_endpoint("/swap", queue_size=500)
 def swap(
     job_progress: JobProgress,
-    faces: Union[List[str], dict, MediaFile, MediaList],
-    media: Union[ImageFile, VideoFile],
+    faces: Union[List[str], dict, ImageFile, MediaFile, MediaList],
+    media: Union[ImageFile, VideoFile, MediaList],
     enhance_face_model: FACE_ENHANCE_MODELS = 'gpen_bfr_512'
 ):
     """
@@ -100,9 +105,10 @@ def swap(
             - str: Name of a reference face
             - dict: Swap pairs with structure {source_face_name: target_face_name}
             - list: List of face names or Face embeddings
+            - ImageFile: Use face detection to create a face embedding from the image.
             - MediaFile: Single face embedding file
-            - MediaList: Multiple face embedding files
-        media: The image or video to swap faces in
+            - MediaList: Multiple face embeddings
+        media: The image(s) or video(s) to swap faces in
         enhance_face_model: Face enhancement model to use. Defaults to 'gpen_bfr_512'
 
     Returns:
@@ -111,14 +117,36 @@ def swap(
     Raises:
         ValueError: If no faces are provided or media type is unsupported
     """
-    if isinstance(media, VideoFile):
-        return swap_video(job_progress=job_progress, faces=faces, target_video=media, enhance_face_model=enhance_face_model, include_audio=True)
 
-    job_progress.set_status(progress=0.01, message="Started swapping faces")
-    swapped_media = f2f.swap(faces=faces, media=media, enhance_face_model=enhance_face_model)
+    media = MediaList(read_system_files=False, download_files=True).from_any(media)
 
-    if isinstance(swapped_media, np.ndarray):
-        return ImageFile(file_name="swapped.png").from_np_array(swapped_media)
+    processsable_media = media.get_processable_files()
+    if len(processsable_media) == 0:
+        raise ValueError("No processable media files found")
+
+    progress = 0.01
+    errors = []
+    swapped_media = MediaList()
+    for i, media_file in enumerate(processsable_media, start=1):
+        progress = 0.01 + (i / len(processsable_media)) * 0.99
+        message = f"Swapping {i} of {len(processsable_media)} media files."
+        if errors:
+            message += f" Errors: {errors}"
+
+        job_progress.set_status(progress=progress, message=f"Swapping {i} of {len(processsable_media)} media files")
+        try:
+            if isinstance(media_file, VideoFile):
+                swapped_media.append(swap_video(job_progress=job_progress, faces=faces, target_video=media_file, enhance_face_model=enhance_face_model, include_audio=True))
+            elif isinstance(media_file, ImageFile):
+                swapped_media.append(f2f.swap(faces=faces, media=media_file, enhance_face_model=enhance_face_model))
+        except Exception as e:
+            errors_message = f"Error swapping media {i}: {e}"
+            errors.append(errors_message)
+            continue
+
+    if len(swapped_media) == 0:
+        job_progress.set_status(progress=1.0, message=f"Errors: {errors}")
+        raise ValueError(f"Errors swapping your media: {errors}")
 
     return swapped_media
 
@@ -126,7 +154,7 @@ def swap(
 @app.task_endpoint("/swap_video", queue_size=10)
 def swap_video(
         job_progress: JobProgress,
-        faces: Union[List[str], dict, MediaFile, MediaList],
+        faces: Union[List[str], dict, MediaFile, MediaList, ImageFile],
         target_video: VideoFile,
         include_audio: bool = True,
         enhance_face_model: FACE_ENHANCE_MODELS = 'gpen_bfr_512'
