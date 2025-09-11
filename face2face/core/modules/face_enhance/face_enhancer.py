@@ -45,7 +45,7 @@ def estimate_matrix_by_face_landmark_5(
 ) -> np.array:
     normed_warp_template = WARP_TEMPLATES.get(warp_template) * crop_size
     affine_matrix = cv2.estimateAffinePartial2D(
-            face_landmark_5, normed_warp_template, method=cv2.RANSAC, ransacReprojThreshold=100
+        face_landmark_5, normed_warp_template, method=cv2.RANSAC, ransacReprojThreshold=100
     )[0]
     return affine_matrix
 
@@ -110,12 +110,9 @@ def paste_back(
     inverse_mask = cv2.warpAffine(crop_mask, inverse_matrix, temp_size).clip(0, 1)
     inverse_vision_frame = cv2.warpAffine(crop_vision_frame, inverse_matrix, temp_size, borderMode=cv2.BORDER_REPLICATE)
     paste_vision_frame = temp_vision_frame.copy()
-    paste_vision_frame[:, :, 0] = inverse_mask * inverse_vision_frame[:, :, 0] + (1 - inverse_mask) * temp_vision_frame[
-                                                                                                      :, :, 0]
-    paste_vision_frame[:, :, 1] = inverse_mask * inverse_vision_frame[:, :, 1] + (1 - inverse_mask) * temp_vision_frame[
-                                                                                                      :, :, 1]
-    paste_vision_frame[:, :, 2] = inverse_mask * inverse_vision_frame[:, :, 2] + (1 - inverse_mask) * temp_vision_frame[
-                                                                                                      :, :, 2]
+    paste_vision_frame[:, :, 0] = inverse_mask * inverse_vision_frame[:, :, 0] + (1 - inverse_mask) * temp_vision_frame[:, :, 0]
+    paste_vision_frame[:, :, 1] = inverse_mask * inverse_vision_frame[:, :, 1] + (1 - inverse_mask) * temp_vision_frame[:, :, 1]
+    paste_vision_frame[:, :, 2] = inverse_mask * inverse_vision_frame[:, :, 2] + (1 - inverse_mask) * temp_vision_frame[:, :, 2]
     return paste_vision_frame
 
 

@@ -115,7 +115,7 @@ If the faces argument is provided as dict, the swap function recognizes and swap
 # Swap faces with defined swap pairs
 # This function will swap the faces of trump with hagrid and biden with ron.
 # assumption the faces [trump, hagrid, biden, ron] are already added with f2f.add_face
-swapped = f2f.swap(
+swapped = f2f.swap_pairs(
   media="path/to/my_img_or_video.mp4", 
   faces={
       "trump": "hagrid",

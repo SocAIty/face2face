@@ -7,9 +7,11 @@ from typing import TYPE_CHECKING, Union, List
 from face2face.core.compatibility.Face import Face
 from face2face.core.modules.face_enhance.face_enhancer import enhance_face
 
+from media_toolkit import ImageFile
+
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
-    from media_toolkit import MediaFile, MediaList, ImageFile
+    from media_toolkit import MediaFile, MediaList
 
 # other imports
 from face2face.core.modules.utils import load_image, download_model
@@ -19,34 +21,12 @@ types_faces = Union[str, Face, list, 'ImageFile', 'MediaFile', 'MediaList']
 
 
 class _ImageSwap:
-    def swap_image(
-            self: Face2Face,
-            image: Union[str, np.array, ImageFile],
-            faces: types_faces,
-            enhance_face_model: str = 'gpen_bfr_512'
-    ) -> np.array:
-        """
-        Swaps the faces in the image.
-        :param image: the image to swap the faces in
-        :param faces: defines what to swap to.
-            if str -> the name of the face to swap to. All faces in the image will be swapped to this face.
-            if list -> the list of face_names or face objects to swap to from left to right.
-            if dict -> the swap_pairs with the structure {source_face_name: target_face_name}. Use face recognition
-                to swap the source faces to the target faces.
-            if Face -> the face object to swap to. All faces in the image will be swapped to this face.
-        :param enhance_face_model: the face enhancement model to use. Use None for no enhancement
-        """
-        if not isinstance(faces, Face) and isinstance(faces, dict):
-            return self.swap_pairs(image=image, swap_pairs=faces, enhance_face_model=enhance_face_model)
-
-        return self.swap_to_faces(faces=faces, image=image, enhance_face_model=enhance_face_model)
-
     def swap_img_to_img(
         self: Face2Face,
         source_image: Union[np.array, str, ImageFile],
         target_image: Union[np.array, str, ImageFile],
         enhance_face_model: Union[str, None] = 'gpen_bfr_512'
-    ) -> np.array:
+    ) -> ImageFile:
         """
         Changes the face(s) of the target image to the face(s) of the source image.
         :param source_image: the source image in BGR format (read with cv2)
@@ -73,7 +53,7 @@ class _ImageSwap:
             faces: types_faces,
             image: Union[np.array, list, ImageFile],
             enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
-    ) -> np.array:
+    ) -> ImageFile:
         """
         Changes the face(s) of the target image to the face of the reference image.
         :param faces: the name of the reference face(s), reference face(s), image file or list of image files
@@ -106,7 +86,7 @@ class _ImageSwap:
             target_faces: List[Face],
             image: Union[np.array, str, ImageFile],
             enhance_face_model: str = 'gpen_bfr_512'
-    ) -> np.array:
+    ) -> ImageFile:
         """
         Changes the face(s) of the target image to the face(s) of the source image.
         if there are more target faces than source faces, the source face index is reset and starts again left->right.
@@ -152,13 +132,13 @@ class _ImageSwap:
                 except Exception as e:
                     print(f"Error in enhancing face {target_index}: {e}. Returning lowres swap instead.")
 
-        return result
+        return ImageFile().from_np_array(result)
 
     def swap_to_face_generator(
-            self: Face2Face,
-            faces: types_faces,
-            image_generator,
-            enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
+        self: Face2Face,
+        faces: types_faces,
+        image_generator,
+        enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
     ):
         """
         Changes the face(s) of each image in the target_img_generator to the face of the reference image.

@@ -4,8 +4,10 @@ from typing import TYPE_CHECKING, Union, List, Dict
 
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
-
+    from media_toolkit import ImageFile
+    
 # normal imports
+
 from face2face.core.modules.utils import load_image
 from collections import OrderedDict
 from face2face.core.compatibility.Face import Face
@@ -18,7 +20,7 @@ class _FaceRecognition:
     """
     def face_recognition(
             self: Face2Face,
-            image: np.array,
+            image: Union[np.array, str, 'ImageFile'],
             face_names: Union[str, List[str], None] = None,
             threshold: float = 0.5
     ) -> list:
@@ -56,11 +58,11 @@ class _FaceRecognition:
 
     def swap_pairs(
             self: Face2Face,
-            image: Union[np.array, str],
+            image: Union[np.array, str, 'ImageFile'],
             swap_pairs: dict,
             enhance_face_model: str = 'gpen_bfr_512',
             threshold: float = 0.5
-    ):
+    ) -> ImageFile:
         """
         Based on the swap_pairs, swap the source faces to the target faces if they are recognized.
         1. Identify all persons in an image, by calculating the cosine distance between the embeddings >= threshold.

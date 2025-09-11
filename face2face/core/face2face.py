@@ -58,10 +58,10 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
     def swap(
         self,
         media: Union[str, np.ndarray, tuple, List[str], ImageFile, VideoFile, List[ImageFile], MediaList],
-        faces: Union[str, dict, list, List[Face], Face, None] = None,
+        faces: Union[str, dict, list, List[Face], Face, ImageFile] = None,
         enhance_face_model: Union[str, None] = 'gpen_bfr_512',
         include_audio: bool = True
-    ) -> Union[np.array, list, VideoFile]:
+    ) -> Union[ImageFile, VideoFile, MediaList]:
         """
         Perform a unified face swap operation on images, videos, or streams.
         Parameters
@@ -99,8 +99,8 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
 
         Returns
         -------
-        np.ndarray | list[np.ndarray] | VideoFile
-            - Single image (np.ndarray) if input was an image.
+        ImageFile | list[ImageFile] | VideoFile
+            - Single image ImageFile if input was an image.
             - List of images (list[np.ndarray]) if input was a list of files or a generator.
             - VideoFile object if input was a video.
 
@@ -117,7 +117,7 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
         # TODO: the fucking faces in dict is a shit with swapping by pairs (with recognition)
         # Needs to be fixed.
         if faces is not None and not isinstance(faces, dict):
-            faces = self.get_faces(faces)
+            faces = list(self.get_faces(faces).values())
 
         # read all the provided media
         media = MediaList(read_system_files=True, download_files=True).from_any(media)
@@ -140,12 +140,13 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
             raise ValueError("Please provide faces to swap to.")
         
         if len(media) >= 2:
-            return [self.swap(inp, faces, enhance_face_model, include_audio) for inp in media]
+            swapped = [self.swap(inp, faces, enhance_face_model, include_audio) for inp in media]
+            return MediaList().from_any(swapped)
 
         if isinstance(media[0], ImageFile):
             if not isinstance(faces, Face) and isinstance(faces, dict):
                 return self.swap_pairs(media[0], faces, enhance_face_model)
-            return self.swap_image(media[0], faces, enhance_face_model)
+            return self.swap_to_faces(image=media[0], faces=faces, enhance_face_model=enhance_face_model)
         elif isinstance(media[0], VideoFile):
             if not isinstance(faces, Face) and isinstance(faces, dict):
                 return self.swap_pairs_in_video(faces, media[0], enhance_face_model, include_audio)

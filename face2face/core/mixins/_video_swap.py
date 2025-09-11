@@ -21,7 +21,7 @@ class _Video_Swap:
         faces: types_faces,
         enhance_face_model: Union[str, None] = None,
         include_audio: bool = True
-    ):
+    ) -> VideoFile:
         """
         Swaps the faces in the video.
         :param video: the video to swap the faces in
@@ -45,7 +45,7 @@ class _Video_Swap:
         video: Union[str, VideoFile],
         include_audio: bool = True,
         enhance_face_model: Union[str, None] = None
-    ):
+    ) -> VideoFile:
         """
         Swaps the face of the target video to the face of the reference image.
         :param face_name: the name of the reference face embedding
@@ -77,7 +77,7 @@ class _Video_Swap:
         include_audio: bool = True,
         enhance_face_model: Union[str, None] = None,
         recognition_threshold: float = 0.5
-    ):
+    ) -> VideoFile:
         """
         Swaps the reference faces in the target video.
         :param swap_pairs: a dict with the structure {source_face_name: target_face_name}

@@ -202,8 +202,8 @@ class _FaceEmbedding:
         Add one or multiple reference face(s) to the face swapper. This face(s) can be used for swapping in other images.
 
         Args:
-            face_name: The name(s) for the reference face(s).
-                - If a single string, creates one face embedding
+            face_name: The name(s) for the reference face(s). In an image with multiple faces:
+                - If a single string, creates one face embedding for the first face in the image
                 - If a list of strings, creates embeddings for each face from left to right in the image
             media: The media from which to extract the face(s). Can be:
                 - numpy array: Direct image data
