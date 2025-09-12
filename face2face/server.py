@@ -2,7 +2,7 @@ import os
 import numpy as np
 from typing import Literal, Union, List
 
-from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile, MediaList, MediaDict
+from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile, MediaList
 import fast_task_api
 import media_toolkit
 import face2face
@@ -45,7 +45,7 @@ def swap_img_to_img(source_img: ImageFile, target_img: ImageFile, enhance_face_m
         ImageFile: The resulting image with swapped faces
     """
     swapped_img = f2f.swap_img_to_img(np.array(source_img), np.array(target_img), enhance_face_model=enhance_face_model)
-    return ImageFile(file_name="swapped_img.png").from_np_array(swapped_img)
+    return ImageFile(file_name="swapped_img.png").from_any(swapped_img)
 
 
 @app.task_endpoint("/add_face", queue_size=500)
@@ -81,10 +81,10 @@ def add_face(
     faces = f2f.add_face(face_name=face_name, media=image, save=save)
 
     if isinstance(faces, dict):
-        return MediaDict({
-            face_name: MediaFile(file_name=f"{face_name}.npy").from_bytesio(face.to_bytes_io())
+        return MediaList([
+            MediaFile(file_name=f"{face_name}.npy").from_bytesio(face.to_bytes_io())
             for face_name, face in faces.items()
-        })
+        ])
 
     if isinstance(faces, tuple):
         return MediaFile(file_name=f"{face_name}.npy").from_bytesio(faces[1].to_bytes_io())
@@ -128,7 +128,7 @@ def swap(
     errors = []
     swapped_media = MediaList()
     for i, media_file in enumerate(processsable_media, start=1):
-        progress = 0.01 + (i / len(processsable_media)) * 0.99
+        progress = 0.01 + (i / len(processsable_media)) * 0.98  # do not set to 1.0 because then runpod already finishes the job and does delete the job
         message = f"Swapping {i} of {len(processsable_media)} media files."
         if errors:
             message += f" Errors: {errors}"
@@ -136,16 +136,18 @@ def swap(
         job_progress.set_status(progress=progress, message=f"Swapping {i} of {len(processsable_media)} media files")
         try:
             if isinstance(media_file, VideoFile):
-                swapped_media.append(swap_video(job_progress=job_progress, faces=faces, target_video=media_file, enhance_face_model=enhance_face_model, include_audio=True))
+                result = swap_video(job_progress=job_progress, faces=faces, target_video=media_file, enhance_face_model=enhance_face_model, include_audio=True)
+                swapped_media.append(result)
             elif isinstance(media_file, ImageFile):
-                swapped_media.append(f2f.swap(faces=faces, media=media_file, enhance_face_model=enhance_face_model))
+                result = f2f.swap(faces=faces, media=media_file, enhance_face_model=enhance_face_model)
+                swapped_media.append(result)
         except Exception as e:
             errors_message = f"Error swapping media {i}: {e}"
             errors.append(errors_message)
             continue
 
     if len(swapped_media) == 0:
-        job_progress.set_status(progress=1.0, message=f"Errors: {errors}")
+        job_progress.set_status(progress=0.99, message=f"Errors: {errors}")
         raise ValueError(f"Errors swapping your media: {errors}")
 
     return swapped_media
@@ -216,6 +218,7 @@ def swap_video(
         frame_rate=target_video.frame_rate,
         audio_sample_rate=target_video.audio_sample_rate
     )
+
     return output_video
 
 

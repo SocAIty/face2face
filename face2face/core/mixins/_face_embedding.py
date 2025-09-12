@@ -37,6 +37,10 @@ class _FaceEmbedding:
         Returns:
             List[Face]: List of face objects
         """
+
+        if isinstance(media, FileWriteableFace):
+            return [media.to_face()]
+        
         if isinstance(media, Face):
             return [media]
         
@@ -75,7 +79,7 @@ class _FaceEmbedding:
         if not isinstance(face_embedding_file_path, (str, BytesIO)):
             return None
         
-        if not is_valid_file_path(face_embedding_file_path):
+        if isinstance(face_embedding_file_path, str) and not is_valid_file_path(face_embedding_file_path):
             return None
 
         try:
@@ -130,6 +134,29 @@ class _FaceEmbedding:
     
         return "face_" + str(uuid.uuid4())
         
+    def _get_face(self, media: Union[str, MediaFile, ImageFile, Face]) -> dict:
+        strategies = [
+            self._load_from_cache,
+            self._load_from_embeddings_dir,
+            self.convert_to_face,
+        ]
+        for strategy in strategies:
+            new_faces = strategy(media)
+            if new_faces is None:
+                continue
+
+            if not isinstance(new_faces, list):
+                new_faces = [new_faces]
+             
+            converted_faces = {}
+            for j, face in enumerate(new_faces):
+                face_name = self._determine_face_name(media)
+                if len(new_faces) > 1:
+                    face_name = f"{face_name}_{j}"
+                converted_faces[face_name] = face
+            return converted_faces
+        return None
+
     def get_faces(
         self, 
         faces: Union[str, Face, ImageFile, MediaFile, list, MediaList]
@@ -163,29 +190,14 @@ class _FaceEmbedding:
         if not isinstance(faces, (list, MediaList)):
             faces = [faces]
 
-        strategies = [
-            self._load_from_cache,
-            self._load_from_embeddings_dir,
-            self.convert_to_face,
-        ]
-
         converted_faces = {}
         # Process each item in the list
         for i, media in enumerate(faces):
-            for strategy in strategies:
-                new_faces = strategy(media)
-                if new_faces is None:
-                    continue
-
-                if not isinstance(new_faces, list):
-                    new_faces = [new_faces]
-                 
-                for j, face in enumerate(new_faces):
-                    face_name = self._determine_face_name(media)
-                    if len(new_faces) > 1:
-                        face_name = f"{face_name}_{j}"
-                    converted_faces[face_name] = face
-                break
+            new_faces = self._get_face(media)
+            if new_faces is None:
+                print(f"No faces could be loaded for input {i}")
+                continue
+            converted_faces.update(new_faces)
   
         if len(converted_faces) == 0:
             raise ValueError("No faces could be loaded")
@@ -261,15 +273,18 @@ class _FaceEmbedding:
             # Store in memory
             self._face_embeddings[encoded_name] = face
 
+            # writeable face 
+            embedding_face = FileWriteableFace(face)
+
             # Optionally save to disk
             if save:
                 os.makedirs(EMBEDDINGS_DIR, exist_ok=True)
                 filename = os.path.join(EMBEDDINGS_DIR, f"{encoded_name}.npy")
                 if os.path.exists(filename):
                     print(f"Reference face {encoded_name} already exists. Overwriting.")
-                FileWriteableFace(face).to_file(filename)
+                embedding_face.to_file(filename)
 
-            result_faces[encoded_name] = face
+            result_faces[encoded_name] = embedding_face
 
         if len(result_faces) == 1:
             return result_faces.popitem()
