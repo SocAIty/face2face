@@ -28,7 +28,7 @@ app = FastTaskAPI(
     }
 )
 
-FACE_ENHANCE_MODELS = Literal['', 'gpen_bfr_512', 'gpen_bfr_1024', 'gpen_bfr_2048', 'gfpgan_1.4.onnx']
+FACE_ENHANCE_MODELS = Literal['', 'gpen_bfr_512', 'gpen_bfr_1024', 'gpen_bfr_2048', 'gfpgan_1.4']
 
 
 @app.task_endpoint("/swap_img_to_img", queue_size=500)
@@ -227,19 +227,23 @@ def swap_video(
 
 @app.task_endpoint("/enhance_face", queue_size=500)
 def enhance_face(
-    face_image: Union[ImageFile, MediaList],
+    job_progress: JobProgress,
+    face_image: Union[ImageFile, List[ImageFile]],
     enhance_face_model: FACE_ENHANCE_MODELS = 'gpen_bfr_512'
 ):
     """
     Enhance a face image.
     """
-    if not isinstance(face_image, MediaList):
-        face_image = MediaList([face_image], read_system_files=False, download_files=True)
+    face_image = [face_image] if not isinstance(face_image, list) else face_image
 
     results = MediaList()
-    for i, face in enumerate(face_image):
+    for i, image in enumerate(face_image):
+        if not isinstance(image, ImageFile):
+            continue
+
+        job_progress.set_status(progress=i / len(face_image), message=f"Enhancing face {i} of {len(face_image)}")
         try:
-            enhanced_faces = f2f.enhance_faces([face], enhance_face_model=enhance_face_model)
+            enhanced_faces = f2f.enhance_faces(image, model=enhance_face_model)
             result = ImageFile().from_np_array(enhanced_faces)
             results.append(result)
         except Exception as e:
