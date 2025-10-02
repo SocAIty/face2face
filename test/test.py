@@ -1,8 +1,8 @@
 import os.path
 
 from face2face import Face2Face
-import cv2
-from media_toolkit import VideoFile, ImageFile
+from media_toolkit import VideoFile, ImageFile, MediaList, MediaDict
+
 
 
 f2f = Face2Face(device_id=0)
@@ -19,7 +19,7 @@ def test_single_img_to_img():
     source_img = f"{test_folder}/test_face_1.jpg"
     target_img = f"{test_folder}/test_face_2.jpg"
     swapped = f2f.swap_img_to_img(source_img, target_img, enhance_face_model=None)
-    swapped.save(f"{output_folder}/test_single_img_to_img.jpg")
+    ImageFile().from_np_array(swapped).save(f"{output_folder}/test_single_img_to_img.jpg")
 
 
 def test_multi_img_to_img():
@@ -27,7 +27,7 @@ def test_multi_img_to_img():
     source_img = f"{test_folder}/three.jpeg"
     target_img = f"{test_folder}/three_men.jpeg"
     swapped = f2f.swap_img_to_img(source_img, target_img, enhance_face_model='gpen_bfr_2048')
-    swapped.save(f"{output_folder}/test_multi_img_to_img.png")
+    ImageFile().from_np_array(swapped).save(f"{output_folder}/test_multi_img_to_img.png")
 
 
 def test_single_swap():
@@ -35,7 +35,7 @@ def test_single_swap():
     source_img = f"{test_folder}/test_face_1.jpg"
     target_img = ImageFile().from_file(f"{test_folder}/test_face_2.jpg")
     swapped = f2f.swap(source_img, faces=target_img, enhance_face_model=None)
-    swapped.save(f"{output_folder}/test_single_swap.jpg")
+    ImageFile().from_np_array(swapped).save(f"{output_folder}/test_single_swap.jpg")
 
 
 def test_embedding_face_swap():
@@ -44,7 +44,7 @@ def test_embedding_face_swap():
     target_img = f"{test_folder}/test_face_2.jpg"
     face_name, face = f2f.add_face("hagrid", source_img)
     swapped = f2f.swap(media=target_img, faces=face, enhance_face_model=None)
-    swapped.save(f"{output_folder}/test_embedding_face_swap.png")
+    ImageFile().from_np_array(swapped).save(f"{output_folder}/test_embedding_face_swap.png")
 
 
 def test_img_list_swap():
@@ -52,14 +52,16 @@ def test_img_list_swap():
     source_img = f"{test_folder}/test_face_1.jpg"
     target_img = f"{test_folder}/test_face_2.jpg"
     face = f"{test_folder}/test_face_3.png"
+
     swapped = f2f.swap(media=[source_img, target_img], faces=face, enhance_face_model=None)
-    swapped.save(f"{output_folder}/test_img_list_swap.png")
+    swappeds = MediaList(files=swapped)
+    swappeds.save(f"{output_folder}/test_img_list_swap")
 
 
 def test_image_to_video_swap():
     print("test_image_to_video_swap")
     source_img = f"{test_folder}/test_face_1.jpg"
-    target_video = f"{test_folder}/test_video_1.mp4"
+    target_video = f"{test_folder}/test_video_potter_short.mov"
     swapped = f2f.swap(media=target_video, faces=source_img, enhance_face_model=None)
     swapped.save(f"{output_folder}/test_image_to_video_swap.mp4")
 
@@ -80,14 +82,14 @@ def test_multi_face_with_face_recognition():
         "trump": "hagrid",
         "biden": "ron"
     })
-    cv2.imwrite("../docs/swap_with_recognition.jpg", swapped.to_np_array())
-
+    ImageFile().from_np_array(swapped).save(f"{output_folder}/test_multi_face_with_face_recognition.jpg")
+  
 
 def test_face_enhancing():
     print("test_face_enhancing")
     source_img = f"{test_folder}/test_face_1.jpg"
     enhanced = f2f.enhance_faces(image=source_img, model='gpen_bfr_2048')
-    enhanced.save(f"{output_folder}/enhance_test_gpen_bfr_2048.png")
+    ImageFile().from_np_array(enhanced).save(f"{output_folder}/enhance_test_gpen_bfr_2048.png")
 
 
 def test_face_enhancing_single_face():
@@ -95,17 +97,13 @@ def test_face_enhancing_single_face():
     source_img = f"{test_folder}/three.jpeg"
     f = f2f.detect_faces(source_img)
     enhanced = f2f.enhance_single_face(image=source_img, target_face=f[0], model='gfpgan_1.4')
-    enhanced.save(f"{output_folder}/enhance_single_face_gfpgan_1.4.png")
+    ImageFile().from_np_array(enhanced).save(f"{output_folder}/enhance_single_face_gfpgan_1.4.png")
 
 
 def test_video_face_swap():
     print("test_video_face_swap")
-    # add ref face
-    # source_img = cv2.imread(f"{test_folder}/test_face_4.jpg")
-    # f2f.add_face("caprio", source_img, save=True)
-    # swap it
-    fn = f"{test_folder}/test_video_ultra_short_short.mp4"
-    swapped = f2f.swap(media=fn, faces="caprio", enhance_face_model=None)
+    fn = f"{test_folder}/test_video_short.mp4"
+    swapped = f2f.swap(media=fn, faces=fn, enhance_face_model=None, include_audio=True)
     swapped.save(f"{output_folder}/{os.path.basename(fn)}_swapped.mp4")
 
 
@@ -127,6 +125,8 @@ def test_multi_face_video_swap():
 
 
 if __name__ == "__main__":
+    # Example usage - convert ONNX models
+  
     test_single_img_to_img()
     test_single_swap()
     test_multi_img_to_img()

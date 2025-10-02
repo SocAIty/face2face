@@ -81,11 +81,11 @@ class _ImageSwap:
         )
 
     def _swap_faces(
-            self: Face2Face,
-            source_faces: List[Face],
-            target_faces: List[Face],
-            image: Union[np.array, str, ImageFile],
-            enhance_face_model: str = 'gpen_bfr_512'
+        self: Face2Face,
+        source_faces: List[Face],
+        target_faces: List[Face],
+        image: Union[np.array, str, ImageFile],
+        enhance_face_model: str = 'gpen_bfr_512',
     ) -> ImageFile:
         """
         Changes the face(s) of the target image to the face(s) of the source image.
@@ -132,13 +132,13 @@ class _ImageSwap:
                 except Exception as e:
                     print(f"Error in enhancing face {target_index}: {e}. Returning lowres swap instead.")
 
-        return ImageFile().from_np_array(result)
+        return np.array(result)
 
     def swap_to_face_generator(
         self: Face2Face,
         faces: types_faces,
         image_generator,
-        enhance_face_model: Union[str, None] = 'gpen_bfr_2048'
+        enhance_face_model: Union[str, None] = 'gpen_bfr_2048',
     ):
         """
         Changes the face(s) of each image in the target_img_generator to the face of the reference image.
@@ -157,24 +157,11 @@ class _ImageSwap:
             return image_generator
 
         for i, target_image in enumerate(image_generator):
-            # check if generator yields tuples (video, audio) or only images
-            audio = None
-            if isinstance(target_image, tuple) and len(target_image) == 2:
-                target_image, audio = target_image
-
             try:
                 target_faces = self.detect_faces(target_image)
                 swapped = self._swap_faces(source_faces, target_faces, target_image, enhance_face_model)
-                if audio is not None:
-                    yield swapped, audio
-                    continue
-
                 yield swapped
             except Exception as e:
                 print(f"Error in swapping frame {i} to {faces}: {e}. Skipping image")
-                if audio is not None:
-                    yield target_image, audio
-                    continue
-
                 frm = np.array(target_image)
                 yield frm

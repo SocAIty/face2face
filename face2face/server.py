@@ -28,7 +28,7 @@ app = FastTaskAPI(
     }
 )
 
-FACE_ENHANCE_MODELS = Literal['', 'gpen_bfr_512', 'gpen_bfr_1024', 'gpen_bfr_2048']
+FACE_ENHANCE_MODELS = Literal['', 'gpen_bfr_512', 'gpen_bfr_1024', 'gpen_bfr_2048', 'gfpgan_1.4.onnx']
 
 
 @app.task_endpoint("/swap_img_to_img", queue_size=500)
@@ -140,6 +140,7 @@ def swap(
                 swapped_media.append(result)
             elif isinstance(media_file, ImageFile):
                 result = f2f.swap(faces=faces, media=media_file, enhance_face_model=enhance_face_model)
+                result = ImageFile().from_np_array(result)
                 swapped_media.append(result)
         except Exception as e:
             errors_message = f"Error swapping media {i}: {e}"
@@ -180,21 +181,25 @@ def swap_video(
     Raises:
         ValueError: If no faces are provided or video cannot be processed
     """
+
+    # get the frame count and sample rate from the target video
+    frame_count = None
+    if hasattr(target_video, "video_info") and target_video.video_info.frame_count:
+        frame_count = target_video.video_info.frame_count
+
+    sample_rate = None
+    if include_audio and hasattr(target_video, "video_info") and hasattr(target_video.video_info, "audio_info") and target_video.video_info.audio_info.sample_rate:
+        sample_rate = target_video.video_info.audio_info.sample_rate
+
+    gen = target_video.to_stream()
+
     def video_stream_gen():
-        # generator reads the video stream and swaps the faces frame by frame
-        gen = target_video.to_video_stream(include_audio=include_audio)
         swap_gen = f2f.swap_to_face_generator(faces, gen, enhance_face_model=enhance_face_model)
         # Swap the images one by one
-        for i, swapped_audio_tuple in enumerate(swap_gen):
-            audio = None
-            if include_audio and len(swapped_audio_tuple) == 2:
-                swapped_img, audio = swapped_audio_tuple
-            else:
-                swapped_img = swapped_audio_tuple
-
+        for i, swapped_img in enumerate(swap_gen):
             # update progress. Swapping is 90% of the work
-            if target_video.frame_count:
-                percent_converted = float(i / target_video.frame_count)
+            if frame_count:
+                percent_converted = float(i / frame_count)
                 percent_total = round(percent_converted * 0.9, 2)
                 if percent_total > 0.9:  # this is case if the estimation of cv2 is smaller than the actual video size
                     percent_total = 0.9
@@ -204,22 +209,44 @@ def swap_video(
             job_progress.set_status(progress=percent_total, message=f"swapping frame {i}")
 
             # Yield the image
-            if include_audio and audio is not None:
-                yield swapped_img, audio
-            else:
-                yield swapped_img
+            yield swapped_img
 
     # allow tqdm to show better progress bar
-    streamer = SimpleGeneratorWrapper(video_stream_gen(), length=target_video.frame_count)
+    streamer = SimpleGeneratorWrapper(video_stream_gen(), length=frame_count)
 
     # Create video
-    output_video = VideoFile().from_video_stream(
-        video_audio_stream=streamer,
-        frame_rate=target_video.frame_rate,
-        audio_sample_rate=target_video.audio_sample_rate
+    output_video = VideoFile().from_generators(
+        frame_generator=streamer,
+        audio_generator=gen.audio_frames("av"),
+        frame_rate=target_video.video_info.frame_rate,
+        audio_sample_rate=sample_rate
     )
 
     return output_video
+
+
+@app.task_endpoint("/enhance_face", queue_size=500)
+def enhance_face(
+    face_image: Union[ImageFile, MediaList],
+    enhance_face_model: FACE_ENHANCE_MODELS = 'gpen_bfr_512'
+):
+    """
+    Enhance a face image.
+    """
+    if not isinstance(face_image, MediaList):
+        face_image = MediaList([face_image], read_system_files=False, download_files=True)
+
+    results = MediaList()
+    for i, face in enumerate(face_image):
+        try:
+            enhanced_faces = f2f.enhance_faces([face], enhance_face_model=enhance_face_model)
+            result = ImageFile().from_np_array(enhanced_faces)
+            results.append(result)
+        except Exception as e:
+            print(f"Error enhancing face {i}: {e}")
+            continue
+    
+    return results
 
 
 # start the server on provided port

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Union
 from face2face.core.compatibility.Face import Face
 from media_toolkit import VideoFile
 
-from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
+from tqdm import tqdm
 
 if TYPE_CHECKING:
     from face2face.core.face2face import Face2Face
@@ -57,16 +57,26 @@ class _Video_Swap:
         if not isinstance(video, VideoFile):
             raise ValueError("Video must be a path or a VideoFile object")
 
-        gen = video.to_video_stream(include_audio=include_audio)
+        video_stream = video.to_stream()
+        if video.video_info.frame_count is not None:
+            gen = tqdm(video_stream, total=video.video_info.frame_count, desc="Video face swap")
+
         swap_gen = self.swap_to_face_generator(faces=faces, image_generator=gen, enhance_face_model=enhance_face_model)
 
         # allow tqdm to show better progress bar
-        streamer = SimpleGeneratorWrapper(swap_gen, length=video.frame_count)
+        audio_type = None
+        audio_sample_rate = None
+        if video.video_info.audio_info:
+            audio_type = video.video_info.audio_info.codec_name
+            audio_sample_rate = video.video_info.audio_info.sample_rate
 
-        new_video = VideoFile().from_video_stream(
-            video_audio_stream=streamer,
-            frame_rate=video.frame_rate,
-            audio_sample_rate=video.audio_sample_rate
+        new_video = VideoFile().from_generators(
+            frame_generator=swap_gen,
+            audio_generator=video_stream.audio_frames(output_format="av") if include_audio else None,
+            frame_rate=video.video_info.frame_rate,
+            px_fmt=video.video_info.pix_fmt,
+            audio_output_format=audio_type,
+            audio_sample_rate=audio_sample_rate
         )
         return new_video
 
@@ -90,7 +100,9 @@ class _Video_Swap:
         if not isinstance(video, VideoFile):
             raise ValueError("Video must be a path or a VideoFile object")
 
-        gen = video.to_video_stream(include_audio=include_audio)
+        video_stream = video.to_stream()
+        if video.video_info.frame_count is not None:
+            gen = tqdm(video_stream, total=video.video_info.frame_count, desc="Video face swap with recognition")
 
         swapper_gen = self.swap_pairs_generator(
             swap_pairs=swap_pairs,
@@ -99,12 +111,18 @@ class _Video_Swap:
             recognition_threshold=recognition_threshold
         )
 
-        # allow tqdm to show better progress bar
-        streamer = SimpleGeneratorWrapper(swapper_gen, length=video.frame_count)
+        audio_type = None
+        audio_sample_rate = None
+        if video.video_info.audio_info:
+            audio_type = video.video_info.audio_info.codec_name
+            audio_sample_rate = video.video_info.audio_info.sample_rate
 
-        new_video = VideoFile().from_video_stream(
-            video_audio_stream=streamer,
-            frame_rate=video.frame_rate,
-            audio_sample_rate=video.audio_sample_rate
+        new_video = VideoFile().from_generators(
+            frame_generator=swapper_gen,
+            audio_generator=video_stream.audio_frames(output_format="av") if include_audio else None,
+            frame_rate=video.video_info.frame_rate,
+            px_fmt=video.video_info.pix_fmt,
+            audio_output_format=audio_type,
+            audio_sample_rate=audio_sample_rate
         )
         return new_video

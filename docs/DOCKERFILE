@@ -22,8 +22,8 @@ WORKDIR /
 # added runpod directly in dependencies
 # added other libs before which keep failing in requirements file for unknown reasons.
 # note that fairseq need to be installed differently in windows and linux
-RUN pip install runpod>=1.7.7 && \
-	pip install socaity-face2face[full]>=1.2.4 --no-cache
+RUN pip install runpod>=1.7.13 && \
+	pip install socaity-face2face[full]>=1.2.7 --no-cache
 
 # Configure where the models and the output is stored
 ENV MODELS_DIR="/runpod-volume/face2face/models/"

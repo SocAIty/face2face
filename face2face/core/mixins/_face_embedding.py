@@ -284,7 +284,7 @@ class _FaceEmbedding:
                     print(f"Reference face {encoded_name} already exists. Overwriting.")
                 embedding_face.to_file(filename)
 
-            result_faces[encoded_name] = embedding_face
+            result_faces[encoded_name] = face
 
         if len(result_faces) == 1:
             return result_faces.popitem()
