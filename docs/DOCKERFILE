@@ -23,24 +23,24 @@ WORKDIR /
 # added other libs before which keep failing in requirements file for unknown reasons.
 # note that fairseq need to be installed differently in windows and linux
 RUN pip install runpod>=1.7.13 && \
-	pip install socaity-face2face[full]>=1.3.0 --no-cache
+	pip install socaity-face2face[full]>=1.4.0 --no-cache
 
 # Configure where the models and the output is stored
 ENV MODELS_DIR="/runpod-volume/face2face/models/"
 ENV REF_FACES_DIR="/runpod-volume/face2face/face_embeddings"
 ENV ALLOW_EMBEDDING_SAVE_ON_SERVER="false"
 
-# Configure that fast-task-api shall be started in "runpod" mode and run "serverless"
+# Configure that apipod shall be started in "runpod" mode and run "serverless"
 
-ENV FTAPI_BACKEND="runpod"
-ENV FTAPI_DEPLOYMENT="serverless"
+ENV APIPOD_BACKEND="runpod"
+ENV APIPOD_DEPLOYMENT="serverless"
 
 ARG port=8080
-ENV FTAPI_PORT=$port
+ENV APIPOD_PORT=$port
 # allows the docker container to use the port
 EXPOSE $port 
 # allows any IP from the computer to connect to the host
-ENV FTAPI_HOST="0.0.0.0"
+ENV APIPOD_HOST="0.0.0.0"
 
-# Start the fast-task-api server which is instantiated in the module -m face2face.server
+# Start the apipod server which is instantiated in the module -m face2face.server
 CMD [ "python", "-m", "face2face.server"]

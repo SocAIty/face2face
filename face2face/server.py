@@ -2,9 +2,9 @@ import os
 import numpy as np
 from typing import Literal, Union, List
 
-from fast_task_api import FastTaskAPI, ImageFile, JobProgress, MediaFile, VideoFile, MediaList
-from fast_task_api.core.routers._exceptions import JobException
-import fast_task_api
+from apipod import APIPod, ImageFile, JobProgress, MediaFile, VideoFile, MediaList
+from apipod.common.exceptions import JobException
+import apipod
 import media_toolkit
 import face2face
 from face2face.core.face2face import Face2Face
@@ -13,26 +13,22 @@ from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
 from face2face.settings import ALLOW_EMBEDDING_SAVE_ON_SERVER
 
 # print the fasttaskapi version, media-toolkit version and face2face version
-print(f"FastTaskAPI version: {fast_task_api.__version__}")
+print(f"APIPod version: {apipod.__version__}")
 print(f"Media-toolkit version: {media_toolkit.__version__}")
 print(f"Face2Face version: {face2face.__version__}")
 
 
 f2f = Face2Face()
-app = FastTaskAPI(
+app = APIPod(
     title="Face2Face",
     summary="Swap faces from images and videos. Create face embeddings.",
-    version="1.2.4",
-    contact={
-        "name": "SocAIty",
-        "url": "https://github.com/SocAIty/face2face",
-    }
+    version="1.4.0"
 )
 
 FACE_ENHANCE_MODELS = Literal['', 'gpen_bfr_512', 'gpen_bfr_1024', 'gpen_bfr_2048', 'gfpgan_1.4']
 
 
-@app.task_endpoint("/swap_img_to_img", queue_size=500)
+@app.endpoint("/swap_img_to_img")
 def swap_img_to_img(source_img: ImageFile, target_img: ImageFile, enhance_face_model: FACE_ENHANCE_MODELS = 'gpen_bfr_512'):
     """
     Swap faces between two images.
@@ -49,7 +45,7 @@ def swap_img_to_img(source_img: ImageFile, target_img: ImageFile, enhance_face_m
     return ImageFile(file_name="swapped_img.png").from_any(swapped_img)
 
 
-@app.task_endpoint("/add_face", queue_size=500)
+@app.endpoint("/add_face")
 def add_face(
     face_name: Union[str, List[str]],
     image: ImageFile,
@@ -91,7 +87,7 @@ def add_face(
         return MediaFile(file_name=f"{face_name}.npy").from_bytesio(faces[1].to_bytes_io())
 
 
-@app.task_endpoint("/swap", queue_size=500)
+@app.endpoint("/swap")
 def swap(
     job_progress: JobProgress,
     faces: Union[List[str], dict, ImageFile, MediaFile, MediaList],
@@ -215,7 +211,7 @@ def _swap_video(
     return output_video
 
 
-@app.task_endpoint("/swap_video", queue_size=10)
+@app.endpoint("/swap_video")
 def swap_video(
         job_progress: JobProgress,
         faces: Union[List[str], dict, MediaFile, MediaList, ImageFile],
@@ -245,7 +241,7 @@ def swap_video(
     return _swap_video(job_progress=job_progress, faces=faces, target_video=target_video, include_audio=include_audio, enhance_face_model=enhance_face_model)
 
 
-@app.task_endpoint("/enhance_face", queue_size=500)
+@app.endpoint("/enhance_face")
 def enhance_face(
     job_progress: JobProgress,
     face_image: Union[ImageFile, List[ImageFile]],
@@ -276,5 +272,5 @@ def enhance_face(
 # start the server on provided port
 if __name__ == "__main__":
     # setting port to 8020 (referenced as so in socaity sdk for face2face) if not specified differently
-    port = int(os.environ.get("FTAPI_PORT", 8020))
+    port = int(os.environ.get("APIPOD_PORT", 8020))
     app.start(port=port)
