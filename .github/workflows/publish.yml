@@ -1,0 +1,47 @@
+name: Publish to PyPI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PYPI }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install build twine
+
+      - name: Bump patch version
+        run: |
+          current=$(grep -oP '(?<=version = ")[^"]+' pyproject.toml)
+          IFS='.' read -r major minor patch <<< "$current"
+          new_version="$major.$minor.$((patch + 1))"
+          sed -i "s/version = \"$current\"/version = \"$new_version\"/" pyproject.toml
+          echo "VERSION=$new_version" >> $GITHUB_ENV
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI }}
+        run: twine upload --skip-existing dist/*
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml
+          git commit -m "bump version to ${{ env.VERSION }} [skip ci]"
+          git push
