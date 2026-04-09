@@ -1,0 +1,27 @@
+{
+    "entrypoint": "face2face\\server.py",
+    "title": "Face2Face",
+    "python_version": "3.8",
+    "pytorch": false,
+    "tensorflow": false,
+    "onnx": "1.23.0",
+    "transformers": false,
+    "diffusers": false,
+    "cuda": false,
+    "system_packages": [],
+    "model_files": [
+        "face2face\\models\\face_occluder.onnx",
+        "face2face\\models\\face_enhancer\\gfpgan_1.4.onnx",
+        "face2face\\models\\face_enhancer\\gpen_bfr_1024.onnx",
+        "face2face\\models\\face_enhancer\\gpen_bfr_2048.onnx",
+        "face2face\\models\\face_enhancer\\gpen_bfr_256.onnx",
+        "face2face\\models\\face_enhancer\\gpen_bfr_512.onnx",
+        "face2face\\models\\insightface\\inswapper_128.onnx",
+        "face2face\\models\\insightface\\buffalo_l\\1k3d68.onnx",
+        "face2face\\models\\insightface\\buffalo_l\\2d106det.onnx",
+        "face2face\\models\\insightface\\buffalo_l\\det_10g.onnx",
+        "face2face\\models\\insightface\\buffalo_l\\genderage.onnx",
+        "face2face\\models\\insightface\\buffalo_l\\w600k_r50.onnx"
+    ],
+    "has_env_file": false
+}

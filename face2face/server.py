@@ -9,6 +9,7 @@ import media_toolkit
 import face2face
 from face2face.core.face2face import Face2Face
 from media_toolkit.utils.generator_wrapper import SimpleGeneratorWrapper
+from face2face.core.mixins._face_embedding import FileWriteableFace
 
 from face2face.settings import ALLOW_EMBEDDING_SAVE_ON_SERVER
 
@@ -78,13 +79,19 @@ def add_face(
     faces = f2f.add_face(face_name=face_name, media=image, save=save)
 
     if isinstance(faces, dict):
+        faces = {
+            face_name: FileWriteableFace(face)
+            for face_name, face in faces.items()
+        }
+
         return MediaList([
             MediaFile(file_name=f"{face_name}.npy").from_bytesio(face.to_bytes_io())
             for face_name, face in faces.items()
         ])
 
     if isinstance(faces, tuple):
-        return MediaFile(file_name=f"{face_name}.npy").from_bytesio(faces[1].to_bytes_io())
+        face = FileWriteableFace(faces[1]).to_bytes_io()
+        return MediaFile(file_name=f"{face_name}.npy").from_bytesio(face)
 
 
 @app.endpoint("/swap")

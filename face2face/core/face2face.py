@@ -116,7 +116,7 @@ class Face2Face(_ImageSwap, _FaceEmbedding, _FaceRecognition, _Video_Swap, _Face
         
         # TODO: the fucking faces in dict is a shit with swapping by pairs (with recognition)
         # Needs to be fixed.
-        if faces is not None and not isinstance(faces, dict):
+        if faces is not None and isinstance(faces, dict):
             faces = list(self.get_faces(faces).values())
 
         # read all the provided media
