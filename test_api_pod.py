@@ -1,12 +1,9 @@
-# debug_apipod.py (place in face2face root directory)
+"""Debug helper to launch APIPod CLI from this project root."""
+
+import subprocess
 import sys
-import os
 
-# Add apipod to path
-sys.path.insert(0, r'A:\projects\apipod')
-
-# Import and run the CLI
-from apipod.cli import main
 
 if __name__ == "__main__":
-    main()
+    # Use module invocation instead of importing apipod internals directly.
+    subprocess.run([sys.executable, "-m", "apipod.cli"], check=True)

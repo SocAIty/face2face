@@ -22,7 +22,7 @@ With this repository you can:
 This is a one shot face-swap model; for this reason only one face is needed to swap. It should work for all kinds of content, also for anime.
 The face swapping model itself was created by [Insightface](https://github.com/deepinsight/insightface)
 
-We provide the face swapping functionality as SDK and as a convenient [web (openAPI) API](docs/WebService.md) with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
+We provide the face swapping functionality as SDK and as a convenient [web (openAPI) API](docs/WebService.md) with [APIPod](https://github.com/SocAIty/APIPod).
 The endpoint allows you to easily deploy face swapping, recognition and restoration as a service.
 
 ## Example swaps

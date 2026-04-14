@@ -28,3 +28,12 @@ Homepage = "https://www.socaity.ai"
 full = [
 	"apipod>=1.0.6",
 ]
+dev = [
+	"pytest>=7.0",
+	"httpx>=0.24",
+	"onnx>=1.19.0",
+	"onnxruntime>=1.23.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

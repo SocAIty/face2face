@@ -11,15 +11,11 @@ Note: The first time you start the server, it will download the models. This can
 
 # How it works:
 
-The Webservice is built with [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI). 
-In this regard, for each request it will create a task and return a job id.
-You can then check the status of the job and retrieve the result.
+The webservice is built with [APIPod](https://github.com/SocAIty/APIPod).  
+Each request creates a job and returns a JSON payload with a `job_id`.
+You can then poll the status endpoint (`/status/{job_id}`) and retrieve the result.
 
-We recommend using [fastSDK](https://github.com/SocAIty/fastSDK) and [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI) as illustrated for easy file transfers.
-
-<img src="https://github.com/SocAIty/FastTaskAPI/blob/main/docs/fastsdk_to_fasttaskapi.png?raw=true" width="50%" />
-
-Read the documentations of [fastSDK](https://github.com/SocAIty/fastSDK), [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI) and 
+Read the documentations of [APIPod](https://github.com/SocAIty/APIPod) and
 [media-toolkit](https://github.com/SocAIty/media-toolkit) to get the most out of the service and to familiarize yourself with the concepts.
 
 
@@ -36,11 +32,11 @@ You can configure some settings via environment variables:
 
 # Deployment, Runpod, Docker, file uploads and more
 
-For more settings and how to deploy the service check-out [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
+For more settings and how to deploy the service check out [APIPod](https://github.com/SocAIty/APIPod).
 
 For example it allows you to deploy the service with [Runpod](https://runpod.io) out of the box.
 Checkout the [DOCKERFILE](DOCKERFILE) for runpod.
-To start fasttaskapi with runpod backend set the environment variable `FTAPI_BACKEND=runpod`.
+To start APIPod with runpod backend set the environment variable `APIPOD_BACKEND=runpod`.
 
 # Usage
 
@@ -62,7 +58,14 @@ with open("myimage.jpg", "rb") as image:
 ```
 Then send a post request to the endpoint.
 ```python
-my_job = requests.post("http://localhost:8020/api/add_face", files={"media": my_image, "faces": "biden"})
+import requests
+
+submit = requests.post(
+    "http://localhost:8020/add-face",
+    files={"image": ("face.jpg", my_image, "image/jpeg")},
+    data={"face_name": "biden"},
+)
+my_job = submit.json()
 ```
 
 ### Parse the results
@@ -71,11 +74,20 @@ The response is a json that includes the job id and meta information.
 By sending then a request to the job endpoint you can check the status and progress of the job.
 If the job is finished, you will get the result, including the swapped image.
 ```python
-import cv2
-from io import BytesIO
+import requests
+
 # check status of job
-response = requests.get(f"http://localhost:8020/api/status?job_id={my_job['job_id']}")
-# convert result to image file
-swapped = cv2.imread(BytesIO(response.json()['result']))
+status = requests.get(f"http://localhost:8020/status/{my_job['job_id']}").json()
+
+# metrics now expose execution_time_s instead of total_time_s
+metrics = status.get("metrics", {})
+print("execution_time_s:", metrics.get("execution_time_s"))
+
+# result is a media payload; for files, content is usually a URL
+result = status.get("result", {})
+image_url = result.get("content")
+image_bytes = requests.get(image_url, timeout=60).content
+with open("swapped_img.png", "wb") as f:
+    f.write(image_bytes)
 ```
 
