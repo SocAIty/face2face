@@ -26,5 +26,5 @@ Homepage = "https://www.socaity.ai"
 
 [project.optional-dependencies]
 full = [
-	"apipod>=1.0.5",
+	"apipod>=1.0.6",
 ]

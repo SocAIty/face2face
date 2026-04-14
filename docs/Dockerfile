@@ -32,8 +32,8 @@ ENV ALLOW_EMBEDDING_SAVE_ON_SERVER="false"
 
 # Configure that apipod shall be started in "runpod" mode and run "serverless"
 
-ENV APIPOD_BACKEND="runpod"
-ENV APIPOD_DEPLOYMENT="serverless"
+ENV APIPOD_PROVIDER="runpod"
+ENV APIPOD_COMPUTE="serverless"
 
 ARG port=8080
 ENV APIPOD_PORT=$port
